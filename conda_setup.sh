@@ -4,4 +4,3 @@ chmod +x Miniconda3-latest-Linux-x86_64.sh
 export PATH='/home/ubuntu/miniconda3/bin:$PATH'
 conda init bash
 conda create -n testenv python==3.9.0
-source ~/.bashrc
