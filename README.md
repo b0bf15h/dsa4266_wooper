@@ -1,34 +1,36 @@
 # Wooper Model
 
 ## Environment Set-up
-Within the ubuntu instance, run the following commands to clone this repo into the ubuntu instance
+Within your home directory, run the following commands to clone set-up your environment.
 
 ```
 git clone https://github.com/b0bf15h/dsa4266_wooper.git
+cp dsa4266_wooper/conda_setup.sh .
 ```
-Add the following line to your .bash_profile
+Add the following line to your .bash_profile in home directory
 ```
 source ~/.bashrc
 ```
-Add the following lines to your .bashrc in home directory
+Add the following line to your .bashrc in home directory
 ```
-export PATH=’/home/ubuntu/miniconda3/bin:$PATH’
-conda activate testenv # optional, activates the env after running conda_setup.sh and on subsequent terminal launches
+export PATH='/home/ubuntu/miniconda3/bin:$PATH'
 ```
 Run the conda_setup.sh shell script using the following commands 
 ```
 chmod +x conda_setup.sh
 ./conda_setup.sh
 ```
+Run your .bashrc
+```
+source ~/.bashrc
+```
 
 ## Installation
-After activating testenv, install dependencies via the following code.
 
+Run the following codes to install dependencies.
 ```
-sudo apt install python3-pip
+conda activate testenv
+pip install -r dsa4266_wooper/requirements.txt
 mkdir data
 aws s3 cp --no-sign-request s3:abc ./data
-
-cd
-pip install -r requirements.txt
 ```
