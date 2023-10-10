@@ -170,7 +170,7 @@ class DataParsing(object):
         df = pd.DataFrame(
             {
                 "transcript_id": transcript_id,
-                "position": seq_pos,
+                "transcript_position": seq_pos,
                 "sequence": seq_seq,
                 "dwell_time": seq_dtime,
                 "sd": seq_sd,

@@ -4,7 +4,7 @@ class TrainTestSplit(object):
     def __init__(self,merged_pkl_data):
       self.merged_pkl_data=merged_pkl_data
 
-    def train_test_split(self,train_size):
+    def train_test_split(self,train_size, data_path):
       grouped_gene_id=pd.Series(self.merged_pkl_data.groupby(by='gene_id')['transcript_id'].count().sort_values())
       Grouped_id=pd.qcut(grouped_gene_id, q=10, labels=False)
       Grouped_id=pd.DataFrame({'Gene_ID':grouped_gene_id.index,"Quantile":Grouped_id})
@@ -16,7 +16,9 @@ class TrainTestSplit(object):
         for item in selected:
           train_gene_id.append(item)
       
-      train_data=self.merged_pkl_data[data['gene_id'].isin(train_gene_id)==True]
+      train_data=self.merged_pkl_data[self.merged_pkl_data['gene_id'].isin(train_gene_id)==True]
       test_data=self.merged_pkl_data[self.merged_pkl_data['gene_id'].isin(train_gene_id)!=True]
       print("TRAIN-TEST SPLIT SUCCESSFUL")
+      train_data.to_pickle(data_path/'train_data.pkl')
+      test_data.to_pickle(data_path/'test_data.pkl')
       return (train_data,test_data)
