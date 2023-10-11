@@ -4,8 +4,8 @@ import argparse
 import pathlib
 
 parser = argparse.ArgumentParser(prog = 'main.py', description = 'End-to-End Model Training')
-parser.add_argument('--data_path', type = pathlib.Path, action = 'store' , required = True, help = 'Path to raw data and labels')
-parser.add_argument('--train_test_ratio', type = float, action = 'store', required = False, help = 'Ratio for train-test split', default = 0.8)
+parser.add_argument('--data_path', '-d', type = pathlib.Path, action = 'store' , required = True, help = 'Path to raw data and labels')
+parser.add_argument('--train_test_ratio', '-r', type = float, action = 'store', required = False, help = 'Ratio for train-test split', default = 0.8)
 args = parser.parse_args()
 data_path = args.data_path
 tt_ratio = args.train_test_ratio
