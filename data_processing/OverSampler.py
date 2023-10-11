@@ -7,10 +7,13 @@ class OverSampler(object):
             self.data_path = data_path
             self.data = pd.read_pickle(self.data_path/'train_data.pkl')
         def sample(self):
-            labels = self.data['label']
-            self.data = self.data.drop(['label'], axis = 1, inplace=True)
-            sm = SMOTENC(random_state=42, categorical_features=['transcript_position', 'sequence', 'm1_seq', 'p1_seq'])
-            x,y = sm.fit_resample(self.data,labels)
+            small  = self.data.sample(0.1)
+            labels = small['label']
+            # labels = self.data['label']
+            # self.data = self.data.drop(['label'], axis = 1, inplace=True)
+            small.drop(['label'], axis = 1, inplace=True)
+            sm = SMOTENC(random_state=42, categorical_features=['sequence', 'm1_seq', 'p1_seq'])
+            x,y = sm.fit_resample(small,labels)
             labels = pd.Series(y, name='label')
             self.data = x.join(labels)
         def write_output(self):

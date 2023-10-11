@@ -130,7 +130,11 @@ class DataParsing(object):
 
     def replace_T_with_U(self, seq):
         return seq.replace("T", "U")
-
+    
+    def remove_overlapping_m1(self, seq):
+        return seq[0]
+    def remove_overlapping_p1(self, seq):
+        return seq[4]
     def unlabelled_data(self):
         # Decompressing .json.gz into a json file
         output_file = "data.json"
@@ -189,6 +193,8 @@ class DataParsing(object):
         df["sequence"] = df["sequence"].apply(self.replace_T_with_U)
         df["m1_seq"] = df["m1_seq"].apply(self.replace_T_with_U)
         df["p1_seq"] = df["p1_seq"].apply(self.replace_T_with_U)
+        df["m1_seq"] = df["m1_seq"].apply(self.remove_overlapping_m1)
+        df["p1_seq"] = df["p1_seq"].apply(self.remove_overlapping_p1)
 
         print("DATA PARSING SUCCESSFUL")
         return df
