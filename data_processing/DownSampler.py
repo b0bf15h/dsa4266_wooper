@@ -2,9 +2,9 @@ from pathlib import Path
 import pandas as pd
 
 class DownSampler(object):
-        def __init__(self,data_path):
+        def __init__(self,data_path,train_file):
             self.data_path = data_path
-            self.train = pd.read_pickle(self.data_path/'train_data.pkl')
+            self.train = pd.read_pickle(self.data_path/train_file)
             self.test = pd.read_pickle(self.data_path/'test_data.pkl')
             self.train_sampled = []
             self.test_sampled = []
