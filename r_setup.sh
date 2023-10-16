@@ -5,4 +5,4 @@ sudo add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_
 sudo apt -y install make gcc g++ zlib1g-dev libcurl4-openssl-dev libxml2-dev libssl-dev libpng-dev
 libbz2-dev liblzma-dev liblapack-dev libblas-dev gfortran
 sudo apt install --no-install-recommends r-base
-sudo Rscript ./installation.R
+sudo Rscript ./dsa4266_wooper/installation.R
