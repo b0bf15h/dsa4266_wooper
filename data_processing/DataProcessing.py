@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import json
 import gzip
 import os
@@ -193,19 +194,35 @@ class DataParsing(object):
         df["sequence"] = df["sequence"].apply(self.replace_T_with_U)
         df["m1_seq"] = df["m1_seq"].apply(self.replace_T_with_U)
         df["p1_seq"] = df["p1_seq"].apply(self.replace_T_with_U)
-        df["m1_seq"] = df["m1_seq"].apply(self.remove_overlapping_m1)
-        df["p1_seq"] = df["p1_seq"].apply(self.remove_overlapping_p1)
+        # df["m1_seq"] = df["m1_seq"].apply(self.remove_overlapping_m1)
+        # df["p1_seq"] = df["p1_seq"].apply(self.remove_overlapping_p1)
 
         print("DATA PARSING SUCCESSFUL")
         return df
 
+class SummariseDataByTranscript(object):
+    def __init__(self, df):
+        self.df = df
+        self.numerical = ['dwell_time', 'sd', 'mean', 'm1_dtime', 'm1_sd', 'm1_mean', 'p1_dtime', 'p1_sd' ,'p1_mean']
+        self.group = ['transcript_id', 'transcript_position', 'sequence', 'm1_seq', 'p1_seq']
+    def summarise(self):
+        df_mean = self.df.groupby(self.group)[self.numerical].mean().reset_index()
+        df_mean = df_mean.rename(columns={"dwell_time": "dwell_time_mean", "sd": "sd_mean", "mean":"mean_mean", "m1_dtime": 'm1_dtime_mean', 'm1_sd': "m1_sd_mean", 'm1_mean':"m1_mean_mean", 'p1_dtime':"p1_dtime_mean", 'p1_sd':"p1_sd_mean" ,'p1_mean':"p1_mean_mean"})
+        df_var = self.df.groupby(self.group)[self.numerical].var().reset_index()[self.numerical]
+        df_var = df_var.rename(columns={"dwell_time": "dwell_time_var", "sd": "sd_var", "mean":"mean_var", "m1_dtime": 'm1_dtime_var', 'm1_sd': "m1_sd_var", 'm1_mean':"m1_mean_var", 'p1_dtime':"p1_dtime_var", 'p1_sd':"p1_sd_var" ,'p1_mean':"p1_mean_var"})
+        new_df = pd.concat([df_mean, df_var], axis=1)
+        count = self.df.groupby(self.group).count().reset_index()['sd']
+        new_df['count'] = count
+        print("DATA SUMMARISATION SUCCESSFUL")
+        return new_df
 
 class MergeData(object):
-    def __init__(self, parsed_data, raw_info):
+    def __init__(self, parsed_data, raw_info, data_path):
         self.parsed_data = parsed_data
         self.raw_info = raw_info
+        self.data_path = data_path
 
-    def merge(self):
+    def merge_with_labels(self):
         data_info = pd.read_csv(self.raw_info, delimiter="\,")
         data_info["transcript_position"] = data_info["transcript_position"].astype(
             "str"
@@ -218,3 +235,21 @@ class MergeData(object):
         )
         print("DATA MERGING SUCCESSFUL")
         return merged_data
+    def merge_with_features(self):
+        data_info = pd.read_csv(self.raw_info, header = [0])
+        data_info.rename(columns = {'ensembl_transcript_id':'transcript_id'},inplace=True)
+        merged_data = pd.merge(
+            self.parsed_data,
+            data_info,
+            on=["transcript_id"],
+            how="left",
+        )
+        merged_data['relative_sequence_position'] = np.round((merged_data['transcript_position'].astype(float))/merged_data['transcript_length'],5)
+        print("DATA MERGING SUCCESSFUL")
+        return merged_data
+    def write_data_for_R(self):
+        df = self.merge_with_labels()
+        bmart = df[['transcript_id', 'transcript_position']]
+        bmart.to_csv(self.data_path/'bmart.csv')
+        df.to_pickle(self.data_path/'interm.pkl')
+    
