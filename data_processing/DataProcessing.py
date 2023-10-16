@@ -130,11 +130,13 @@ class DataParsing(object):
 
     def replace_T_with_U(self, seq):
         return seq.replace("T", "U")
-    
+
     def remove_overlapping_m1(self, seq):
         return seq[0]
+
     def remove_overlapping_p1(self, seq):
         return seq[4]
+
     def unlabelled_data(self):
         # Decompressing .json.gz into a json file
         output_file = "data.json"
@@ -216,5 +218,61 @@ class MergeData(object):
             on=["transcript_id", "transcript_position"],
             how="left",
         )
+
+        """Grouping the data by gene_id and transcript_id"""
+        numerical = [
+            "dwell_time",
+            "sd",
+            "mean",
+            "m1_dtime",
+            "m1_sd",
+            "m1_mean",
+            "p1_dtime",
+            "p1_sd",
+            "p1_mean",
+        ]
+        group = [
+            "transcript_id",
+            "transcript_position",
+            "sequence",
+            "m1_seq",
+            "p1_seq",
+            "gene_id",
+        ]
+        numerical_label = numerical + ["label"]
+        df_mean = merged_data.groupby(group)[numerical_label].mean().reset_index()
+        df_mean = df_mean.rename(
+            columns={
+                "dwell_time": "dwell_time_mean",
+                "sd": "sd_mean",
+                "mean": "mean_mean",
+                "m1_dtime": "m1_dtime_mean",
+                "m1_sd": "m1_sd_mean",
+                "m1_mean": "m1_mean_mean",
+                "p1_dtime": "p1_dtime_mean",
+                "p1_sd": "p1_sd_mean",
+                "p1_mean": "p1_mean_mean",
+            }
+        )
+
+        df_var = merged_data.groupby(group)[numerical].var().reset_index()[numerical]
+        df_var = df_var.rename(
+            columns={
+                "dwell_time": "dwell_time_var",
+                "sd": "sd_var",
+                "mean": "mean_var",
+                "m1_dtime": "m1_dtime_var",
+                "m1_sd": "m1_sd_var",
+                "m1_mean": "m1_mean_var",
+                "p1_dtime": "p1_dtime_var",
+                "p1_sd": "p1_sd_var",
+                "p1_mean": "p1_mean_var",
+            }
+        )
+
+        new_df = pd.concat([df_mean, df_var], axis=1)
+        count = merged_data.groupby(group).count().reset_index()["label"]
+        new_df["count"] = count
+
         print("DATA MERGING SUCCESSFUL")
         return merged_data
