@@ -19,8 +19,10 @@ class TrainTestSplit(object):
       train_data=self.merged_pkl_data[self.merged_pkl_data['gene_id'].isin(train_gene_id)==True]
       test_data=self.merged_pkl_data[self.merged_pkl_data['gene_id'].isin(train_gene_id)!=True]
       print("TRAIN-TEST SPLIT SUCCESSFUL")
-      train_data.drop(['transcript_id', 'gene_id'], axis = 1, inplace=True)
-      test_data.drop(['transcript_id', 'gene_id'], axis = 1, inplace=True)
       train_data.to_pickle(data_path/'train_data.pkl')
       test_data.to_pickle(data_path/'test_data.pkl')
+      print("length of training data: ")
+      print(len(train_data))
+      print("length of test data: ")
+      print(len(test_data))
       return (train_data,test_data)
