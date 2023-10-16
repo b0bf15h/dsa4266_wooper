@@ -131,11 +131,13 @@ class DataParsing(object):
 
     def replace_T_with_U(self, seq):
         return seq.replace("T", "U")
-    
+
     def remove_overlapping_m1(self, seq):
         return seq[0]
+
     def remove_overlapping_p1(self, seq):
         return seq[4]
+
     def unlabelled_data(self):
         # Decompressing .json.gz into a json file
         output_file = "data.json"
@@ -233,6 +235,7 @@ class MergeData(object):
             on=["transcript_id", "transcript_position"],
             how="left",
         )
+
         print("DATA MERGING SUCCESSFUL")
         return merged_data
     def merge_with_features(self):
