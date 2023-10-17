@@ -1,6 +1,6 @@
 from data_processing.DataProcessing import DataParsing, SummariseDataByTranscript, MergeData
-from TrainTestSplit import TrainTestSplit
 from data_processing.SMOTE import SMOTESampler
+from data_processing.TrainTestSplit import TrainTestSplit
 import pandas as pd
 import argparse
 import pathlib
