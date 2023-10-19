@@ -9,3 +9,5 @@ scipy==1.11.3
 six==1.16.0
 threadpoolctl==3.2.0
 tzdata==2023.3
+lightgbm>=3.3.0
+optuna
