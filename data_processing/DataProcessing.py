@@ -240,18 +240,27 @@ class MergeData(object):
         return merged_data
     def merge_with_features(self):
         data_info = pd.read_csv(self.raw_info, header = [0])
+        if(data_info.shape[0]==0):
+            return self.parsed_data
         data_info.rename(columns = {'ensembl_transcript_id':'transcript_id'},inplace=True)
         merged_data = pd.merge(
             self.parsed_data,
             data_info,
             on=["transcript_id"],
-            how="left",
+            how="left"
         )
         merged_data['relative_sequence_position'] = np.round((merged_data['transcript_position'].astype(float))/merged_data['transcript_length'],5)
+        outliers = merged_data[merged_data['relative_sequence_position']>=1]
+        outliers.to_pickle(self.data_path/'outliers_length.pkl')
         print("DATA MERGING SUCCESSFUL")
         return merged_data
-    def write_data_for_R(self):
+    def write_labelled_data_for_R(self):
         df = self.merge_with_labels()
+        bmart = df[['transcript_id', 'transcript_position']]
+        bmart.to_csv(self.data_path/'bmart.csv')
+        df.to_pickle(self.data_path/'interm.pkl')
+    def write_unlabelled_data_for_R(self):
+        df = self.parsed_data
         bmart = df[['transcript_id', 'transcript_position']]
         bmart.to_csv(self.data_path/'bmart.csv')
         df.to_pickle(self.data_path/'interm.pkl')
