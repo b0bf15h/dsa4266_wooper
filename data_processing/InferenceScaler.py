@@ -40,4 +40,4 @@ class InferenceProcessor(object):
     def write_output(self):
         print("Done processing inference data")
         self.df.to_pickle(self.data_path/self.output_filename)
-        self.reference.to_pickle(self.data_path/'ids_and_positions.pkl')
+        self.reference.to_pickle(self.data_path/(self.output_filename+'_ids_and_positions.pkl'))
