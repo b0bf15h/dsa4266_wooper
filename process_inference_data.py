@@ -24,7 +24,7 @@ class WooperModel(object):
         self.raw_data = self.data_path/raw_data
         parsed_data = DataParsing(self.raw_data).unlabelled_data()
         summarised_data = SummariseDataByTranscript(parsed_data).summarise()
-        MergeData(summarised_data, None, self.data_path).write_unlabelled_data_for_R()
+        MergeData(summarised_data, None, self.data_path).write_data_for_R("unlabelled")
     def advanced_transformations(self, csv_data, output_filename):
         csv_data = self.data_path/csv_data
         step1_data = self.data_path/'interm.pkl'
@@ -42,12 +42,12 @@ if __name__ == "__main__":
     model_instance = WooperModel(data_path)
     if step == 1:
         model_instance.basic_transformations(
-            "dataset2.json.gz",
+            "dataset0.json.gz",
         )
     if step==2:
         model_instance.advanced_transformations(
             "biomart_data.csv",
-            "dataset2.pkl"
+            "dataset0.pkl"
         )
         
         

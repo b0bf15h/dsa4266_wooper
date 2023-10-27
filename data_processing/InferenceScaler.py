@@ -11,7 +11,11 @@ class InferenceProcessor(object):
     """
 
     def __init__(
-        self, data_path: pathlib.Path, scaler: str, encoder: str, output_filename: str
+        self,
+        data_path: pathlib.Path,
+        scaler_name: str,
+        encoder_name: str,
+        output_filename: str,
     ):
         """
         Initialise object and read in data, encoder, scaler
@@ -19,19 +23,19 @@ class InferenceProcessor(object):
         self.data_path = data_path
         self.output_filename = output_filename
         self.df = pd.read_pickle(self.data_path / self.output_filename)
-        self.scaler = scaler
-        self.encoder = encoder
-        self.get_scaler()
-        self.get_encoder()
+        self.scaler = self.get_scaler(scaler_name)
+        self.encoder = self.get_encoder(encoder_name)
         self.reference = None
 
-    def get_scaler(self):
-        with open(self.data_path / self.scaler, "rb") as pickle_file:
-            self.scaler = pickle.load(pickle_file)
+    def get_scaler(self, name: str):
+        with open(self.data_path / name, "rb") as pickle_file:
+            scaler = pickle.load(pickle_file)
+        return scaler
 
-    def get_encoder(self):
-        with open(self.data_path / self.encoder, "rb") as pickle_file:
-            self.encoder = pickle.load(pickle_file)
+    def get_encoder(self, name: str):
+        with open(self.data_path / name, "rb") as pickle_file:
+            encoder = pickle.load(pickle_file)
+        return encoder
 
     def drop_columns(self):
         """
@@ -69,6 +73,5 @@ class InferenceProcessor(object):
     def write_output(self):
         print("Done processing inference data")
         self.df.to_pickle(self.data_path / self.output_filename)
-        self.reference.to_pickle(
-            self.data_path / (self.output_filename + "_ids_and_positions.pkl")
-        )
+        index = self.output_filename[0:8] + "_ids_and_positions.pkl"
+        self.reference.to_pickle(self.data_path / index)
