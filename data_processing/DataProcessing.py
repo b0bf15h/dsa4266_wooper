@@ -3,13 +3,19 @@ import numpy as np
 import json
 import gzip
 import os
+import pathlib
 
 
 class DataParsing(object):
+    """Reads in zipped json.gz and produces dataframe with each row an individual read"""
+
     def __init__(self, raw_data):
         self.raw_data = raw_data
 
-    def find_keys(self, d):
+    def find_keys(self, d: dict) -> list:
+        """
+        Extracts all keys from a dictionary recursively
+        """
         keys = []
         for key, value in d.items():
             # recursively adds keys to list
@@ -20,7 +26,7 @@ class DataParsing(object):
                 keys.append(key)
         return keys
 
-    def parse_seq_pos0_only(self, d):
+    def parse_seq_pos0_only(self, d: dict):
         """For each read of 9 data points, return lists of their info"""
         keys = self.find_keys(d)
         # extract info from each set of keys including adjacent positions
@@ -64,7 +70,7 @@ class DataParsing(object):
         )
 
     def parse_data_pos0(self, data):
-        """Iterate through data and create the lists"""
+        """Iterate through data and extract data into lists for df creation"""
         (
             transcript_id,
             seq_pos,
@@ -129,19 +135,24 @@ class DataParsing(object):
             p1_mean,
         )
 
-    def replace_T_with_U(self, seq):
+    def replace_T_with_U(self, seq: str):
+        """
+        Replaces T bases with U since they are equivalent
+        """
         return seq.replace("T", "U")
 
-    def remove_overlapping_m1(self, seq):
+    def remove_overlapping_m1(self, seq: str):
         return seq[0]
 
-    def remove_overlapping_p1(self, seq):
+    def remove_overlapping_p1(self, seq: str):
         return seq[4]
 
-    def unlabelled_data(self):
+    def unlabelled_data(self) -> pd.DataFrame:
+        """
+        Returns dataframe where each row is a read
+        """
         # Decompressing .json.gz into a json file
         output_file = "data.json"
-
         with gzip.open(self.raw_data, "rb") as gzipped_file:
             with open(output_file, "wb") as json_file:
                 # Read the compressed data and write it to the output file
@@ -202,24 +213,85 @@ class DataParsing(object):
         print("DATA PARSING SUCCESSFUL")
         return df
 
+
 class SummariseDataByTranscript(object):
-    def __init__(self, df):
+    """
+    Summarise data by calculating summary statistics, grouping by sequence
+    """
+
+    def __init__(self, df: pd.DataFrame):
         self.df = df
-        self.numerical = ['dwell_time', 'sd', 'mean', 'm1_dtime', 'm1_sd', 'm1_mean', 'p1_dtime', 'p1_sd' ,'p1_mean']
-        self.group = ['transcript_id', 'transcript_position', 'sequence', 'm1_seq', 'p1_seq']
-    def summarise(self):
+        self.numerical = [
+            "dwell_time",
+            "sd",
+            "mean",
+            "m1_dtime",
+            "m1_sd",
+            "m1_mean",
+            "p1_dtime",
+            "p1_sd",
+            "p1_mean",
+        ]
+        self.group = [
+            "transcript_id",
+            "transcript_position",
+            "sequence",
+            "m1_seq",
+            "p1_seq",
+        ]
+
+    def summarise(self) -> pd.DataFrame:
+        """_summary_
+
+        Returns:
+            pd.DataFrame: calculates mean and variance of each float feature
+        """
         df_mean = self.df.groupby(self.group)[self.numerical].mean().reset_index()
-        df_mean = df_mean.rename(columns={"dwell_time": "dwell_time_mean", "sd": "sd_mean", "mean":"mean_mean", "m1_dtime": 'm1_dtime_mean', 'm1_sd': "m1_sd_mean", 'm1_mean':"m1_mean_mean", 'p1_dtime':"p1_dtime_mean", 'p1_sd':"p1_sd_mean" ,'p1_mean':"p1_mean_mean"})
-        df_var = self.df.groupby(self.group)[self.numerical].var().reset_index()[self.numerical]
-        df_var = df_var.rename(columns={"dwell_time": "dwell_time_var", "sd": "sd_var", "mean":"mean_var", "m1_dtime": 'm1_dtime_var', 'm1_sd': "m1_sd_var", 'm1_mean':"m1_mean_var", 'p1_dtime':"p1_dtime_var", 'p1_sd':"p1_sd_var" ,'p1_mean':"p1_mean_var"})
+        df_mean = df_mean.rename(
+            columns={
+                "dwell_time": "dwell_time_mean",
+                "sd": "sd_mean",
+                "mean": "mean_mean",
+                "m1_dtime": "m1_dtime_mean",
+                "m1_sd": "m1_sd_mean",
+                "m1_mean": "m1_mean_mean",
+                "p1_dtime": "p1_dtime_mean",
+                "p1_sd": "p1_sd_mean",
+                "p1_mean": "p1_mean_mean",
+            }
+        )
+        df_var = (
+            self.df.groupby(self.group)[self.numerical]
+            .var()
+            .reset_index()[self.numerical]
+        )
+        df_var = df_var.rename(
+            columns={
+                "dwell_time": "dwell_time_var",
+                "sd": "sd_var",
+                "mean": "mean_var",
+                "m1_dtime": "m1_dtime_var",
+                "m1_sd": "m1_sd_var",
+                "m1_mean": "m1_mean_var",
+                "p1_dtime": "p1_dtime_var",
+                "p1_sd": "p1_sd_var",
+                "p1_mean": "p1_mean_var",
+            }
+        )
         new_df = pd.concat([df_mean, df_var], axis=1)
-        count = self.df.groupby(self.group).count().reset_index()['sd']
-        new_df['count'] = count
+        count = self.df.groupby(self.group).count().reset_index()["sd"]
+        new_df["count"] = count
         print("DATA SUMMARISATION SUCCESSFUL")
         return new_df
 
+
 class MergeData(object):
-    def __init__(self, parsed_data, raw_info, data_path):
+    """
+    Merges unlabelled data with either the labels (for model training)
+    or with additional features queried from outside sources
+    """
+
+    def __init__(self, parsed_data: pd.DataFrame, raw_info, data_path: pathlib.Path):
         self.parsed_data = parsed_data
         self.raw_info = raw_info
         self.data_path = data_path
@@ -238,30 +310,43 @@ class MergeData(object):
 
         print("DATA MERGING SUCCESSFUL")
         return merged_data
+
     def merge_with_features(self):
-        data_info = pd.read_csv(self.raw_info, header = [0])
-        if(data_info.shape[0]==0):
+        """
+        Merge with csv data(queried from R script) on transcript id
+        """
+        data_info = pd.read_csv(self.raw_info, header=[0])
+        if data_info.shape[0] == 0:
             return self.parsed_data
-        data_info.rename(columns = {'ensembl_transcript_id':'transcript_id'},inplace=True)
-        merged_data = pd.merge(
-            self.parsed_data,
-            data_info,
-            on=["transcript_id"],
-            how="left"
+        data_info.rename(
+            columns={"ensembl_transcript_id": "transcript_id"}, inplace=True
         )
-        merged_data['relative_sequence_position'] = np.round((merged_data['transcript_position'].astype(float))/merged_data['transcript_length'],5)
-        outliers = merged_data[merged_data['relative_sequence_position']>=1]
-        outliers.to_pickle(self.data_path/'outliers_length.pkl')
+        merged_data = pd.merge(
+            self.parsed_data, data_info, on=["transcript_id"], how="left"
+        )
+        merged_data["relative_sequence_position"] = np.round(
+            (merged_data["transcript_position"].astype(float))
+            / merged_data["transcript_length"],
+            5,
+        )
+        outliers = merged_data[merged_data["relative_sequence_position"] >= 1]
+        outliers.to_pickle(self.data_path / "outliers_length.pkl")
         print("DATA MERGING SUCCESSFUL")
         return merged_data
-    def write_labelled_data_for_R(self):
-        df = self.merge_with_labels()
-        bmart = df[['transcript_id', 'transcript_position']]
-        bmart.to_csv(self.data_path/'bmart.csv')
-        df.to_pickle(self.data_path/'interm.pkl')
-    def write_unlabelled_data_for_R(self):
-        df = self.parsed_data
-        bmart = df[['transcript_id', 'transcript_position']]
-        bmart.to_csv(self.data_path/'bmart.csv')
-        df.to_pickle(self.data_path/'interm.pkl')
-    
+
+    def write_data_for_R(self, data_type: str = "labelled"):
+        """
+        Writes data to be used for R querying into data path, as well as store intermediate Df(with labels) for later use
+        """
+        if data_type == "labelled":
+            df = self.merge_with_labels()
+        elif data_type == "unlabelled":
+            df = self.parsed_data
+        else:
+            print(
+                f"{data_type} is not a valid argument, it has to be either labelled or unlabelled"
+            )
+            return
+        bmart = df[["transcript_id", "transcript_position"]]
+        bmart.to_csv(self.data_path / "bmart.csv")
+        df.to_pickle(self.data_path / "interm.pkl")
