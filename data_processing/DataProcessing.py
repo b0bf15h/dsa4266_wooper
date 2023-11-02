@@ -3,6 +3,7 @@ import numpy as np
 import json
 import gzip
 import os
+import scipy.stats
 
 
 class DataParsing(object):
@@ -205,14 +206,26 @@ class DataParsing(object):
 class SummariseDataByTranscript(object):
     def __init__(self, df):
         self.df = df
-        self.numerical = ['dwell_time', 'sd', 'mean', 'm1_dtime', 'm1_sd', 'm1_mean', 'p1_dtime', 'p1_sd' ,'p1_mean']
+        self.numerical_mean = ['dwell_time', 'mean', 'm1_dtime', 'm1_mean', 'p1_dtime','p1_mean']
+        self.numerical_var = ['sd', 'm1_sd','p1_sd']
+        self.dtime = ["dwell_time", "m1_dtime", "p1_dtime"]
         self.group = ['transcript_id', 'transcript_position', 'sequence', 'm1_seq', 'p1_seq']
+        
+    def mean_confidence_interval(self, data, confidence=0.95):
+        a = 1.0 * np.array(data)
+        n = len(a)
+        m, se = np.mean(a), scipy.stats.sem(a)
+        h = se * scipy.stats.t.ppf((1 + confidence) / 2., n-1)
+        return m, m-h, m+h
+
     def summarise(self):
-        df_mean = self.df.groupby(self.group)[self.numerical].mean().reset_index()
-        df_mean = df_mean.rename(columns={"dwell_time": "dwell_time_mean", "sd": "sd_mean", "mean":"mean_mean", "m1_dtime": 'm1_dtime_mean', 'm1_sd': "m1_sd_mean", 'm1_mean':"m1_mean_mean", 'p1_dtime':"p1_dtime_mean", 'p1_sd':"p1_sd_mean" ,'p1_mean':"p1_mean_mean"})
-        df_var = self.df.groupby(self.group)[self.numerical].var().reset_index()[self.numerical]
-        df_var = df_var.rename(columns={"dwell_time": "dwell_time_var", "sd": "sd_var", "mean":"mean_var", "m1_dtime": 'm1_dtime_var', 'm1_sd': "m1_sd_var", 'm1_mean':"m1_mean_var", 'p1_dtime':"p1_dtime_var", 'p1_sd':"p1_sd_var" ,'p1_mean':"p1_mean_var"})
-        new_df = pd.concat([df_mean, df_var], axis=1)
+        df_mean = self.df.groupby(self.group)[self.numerical_mean].mean().reset_index()
+        df_mean = df_mean.rename(columns={"dwell_time": "dwell_time_mean", "mean":"mean_mean", "m1_dtime": 'm1_dtime_mean', 'm1_mean':"m1_mean_mean", 'p1_dtime':"p1_dtime_mean", 'p1_mean':"p1_mean_mean"})
+        df_var = self.df.groupby(self.group)[self.numerical_var].var().reset_index()[self.numerical]
+        df_var = df_var.rename(columns={"sd": "sd_sample_var", 'm1_sd': "m1_sd_sample_var", 'p1_sd':"p1_sd_sample_var"})
+        df_ci = self.df.groupby(self.group)[self.dtime].agg(self.mean_confidence_interval).reset_index()[self.dtime]
+
+        new_df = pd.concat([df_mean, df_var, df_ci], axis=1)
         count = self.df.groupby(self.group).count().reset_index()['sd']
         new_df['count'] = count
         print("DATA SUMMARISATION SUCCESSFUL")
@@ -247,9 +260,11 @@ class MergeData(object):
             on=["transcript_id"],
             how="left",
         )
+        
         merged_data['relative_sequence_position'] = np.round((merged_data['transcript_position'].astype(float))/merged_data['transcript_length'],5)
         print("DATA MERGING SUCCESSFUL")
         return merged_data
+    
     def write_data_for_R(self):
         df = self.merge_with_labels()
         bmart = df[['transcript_id', 'transcript_position']]
