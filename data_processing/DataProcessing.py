@@ -4,7 +4,8 @@ import json
 import gzip
 import os
 import pathlib
-from scipy import stats
+import scipy.stats
+
 
 class DataParsing(object):
     """Reads in zipped json.gz and produces dataframe with each row an individual read"""
@@ -226,43 +227,30 @@ class SummariseDataByTranscript(object):
         self.dtime = ["dwell_time", "m1_dtime", "p1_dtime"]
         self.group = ['transcript_id', 'transcript_position', 'sequence', 'm1_seq', 'p1_seq']
         
-    def calculate_ci_lower(data):
-        mean = np.mean(data)
-        std_dev = np.std(data, ddof=1)  # Use ddof=1 for sample standard deviation
-        n = len(data)
-        z = stats.t.ppf(0.975, df=n-1)  # For a 95% confidence interval (alpha = 0.05)
-
-        margin_of_error = z * (std_dev / np.sqrt(n))
-        lower_bound = mean - margin_of_error
-        upper_bound = mean + margin_of_error
-
-        return lower_bound
-    
-    def calculate_ci_upper(self, data):
-        mean = np.mean(data)
-        std_dev = np.std(data, ddof=1)  # Use ddof=1 for sample standard deviation
-        n = len(data)
-        z = stats.t.ppf(0.975, df=n-1)  # For a 95% confidence interval (alpha = 0.05)
-
-        margin_of_error = z * (std_dev / np.sqrt(n))
-        lower_bound = mean - margin_of_error
-        upper_bound = mean + margin_of_error
-
-        return upper_bound
+    def mean_confidence_interval(self, data, confidence=0.95):
+        a = 1.0 * np.array(data)
+        n = len(a)
+        m, se = np.mean(a), scipy.stats.sem(a)
+        h = se * scipy.stats.t.ppf((1 + confidence) / 2., n-1)
+        return m, m-h, m+h
 
     def summarise(self):
         df_mean = self.df.groupby(self.group)[self.numerical_mean].mean().reset_index()
         df_mean = df_mean.rename(columns={"dwell_time": "dwell_time_mean", "mean":"mean_mean", "m1_dtime": 'm1_dtime_mean', 'm1_mean':"m1_mean_mean", 'p1_dtime':"p1_dtime_mean", 'p1_mean':"p1_mean_mean"})
-        df_var = self.df.groupby(self.group)[self.numerical_var].var().reset_index()[self.numerical]
+        df_var = self.df.groupby(self.group)[self.numerical_var].var().reset_index()[self.numerical_var]
         df_var = df_var.rename(columns={"sd": "sd_sample_var", 'm1_sd': "m1_sd_sample_var", 'p1_sd':"p1_sd_sample_var"})
-        df_ci_lower = self.df.groupby(self.group)[self.dtime].agg(self.calculate_ci_lower).reset_index()[self.dtime]
-        df_ci_lower = df_ci_lower.rename(columns={"dwell_time": "dwell_time_ci_lower", 'm1_dtime': "m1_dtime_ci_lower", 'p1_dtime':"p1_dtime_ci_lower"})
-        df_ci_upper = self.df.groupby(self.group)[self.dtime].agg(self.calculate_ci_upper).reset_index()[self.dtime]
-        df_ci_upper = df_ci_upper.rename(columns={"dwell_time": "dwell_time_ci_upper", 'm1_dtime': "m1_dtime_ci_upper", 'p1_dtime':"p1_dtime_ci_upper"})
-        
-        new_df = pd.concat([df_mean, df_var, df_ci_lower, df_ci_upper], axis=1)
+        df_ci = self.df.groupby(self.group)[self.dtime].agg(self.mean_confidence_interval).reset_index()[self.dtime]
+
+        new_df = pd.concat([df_mean, df_var, df_ci], axis=1)
         count = self.df.groupby(self.group).count().reset_index()['sd']
         new_df['count'] = count
+        new_df['dwell_lower_bound'] = new_df['dwell_time'].apply(lambda A: A[1])
+        new_df['dwell_upper_bound'] = new_df['dwell_time'].apply(lambda A: A[2])
+        new_df['m1_dtime_lower_bound'] = new_df['m1_dtime'].apply(lambda A: A[1])
+        new_df['m1_dtime_upper_bound'] = new_df['m1_dtime'].apply(lambda A: A[2])
+        new_df['p1_dtime_lower_bound'] = new_df['p1_dtime'].apply(lambda A: A[1])
+        new_df['p1_dtime_upper_bound'] = new_df['p1_dtime'].apply(lambda A: A[2])
+        new_df.drop(['dwell_time', 'm1_dtime', 'p1_dtime'], axis = 1, inplace = True)
         print("DATA SUMMARISATION SUCCESSFUL")
         return new_df
 
