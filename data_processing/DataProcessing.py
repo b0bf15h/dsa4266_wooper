@@ -240,7 +240,8 @@ class SummariseDataByTranscript(object):
             "m1_seq",
             "p1_seq",
         ]
-
+    def find_max_abs_diff(self, row):
+        return max(abs(row['m1_mean'] - row['mean']), abs(row['p1_mean'] - row['mean'])) 
     def summarise(self) -> pd.DataFrame:
         """_summary_
 
@@ -258,7 +259,7 @@ class SummariseDataByTranscript(object):
                 "m1_mean": "m1_mean_mean",
                 "p1_dtime": "p1_dtime_mean",
                 "p1_sd": "p1_sd_mean",
-                "p1_mean": "p1_mean_mean",
+                "p1_mean": "p1_mean_mean"
             }
         )
         df_var = (
@@ -276,7 +277,7 @@ class SummariseDataByTranscript(object):
                 "m1_mean": "m1_mean_var",
                 "p1_dtime": "p1_dtime_var",
                 "p1_sd": "p1_sd_var",
-                "p1_mean": "p1_mean_var",
+                "p1_mean": "p1_mean_var"
             }
         )
         new_df = pd.concat([df_mean, df_var], axis=1)
@@ -331,12 +332,10 @@ class MergeData(object):
             / merged_data["transcript_length"],
             5,
         )
-        outliers = merged_data[merged_data["relative_sequence_position"] >= 1]
-        outliers.to_pickle(self.data_path / "outliers_length.pkl")
         print("DATA MERGING SUCCESSFUL")
         return merged_data
 
-    def write_data_for_R(self, data_type: str = "labelled"):
+    def write_data_for_R(self, data_type: str = "labelled", df_name: str = 'interm.pkl', csv_name: str = 'bmart.csv'):
         """
         Writes data to be used for R querying into data path, as well as store intermediate Df(with labels) for later use
         """
@@ -350,5 +349,5 @@ class MergeData(object):
             )
             return
         bmart = df[["transcript_id", "transcript_position"]]
-        bmart.to_csv(self.data_path / "bmart.csv")
-        df.to_pickle(self.data_path / "interm.pkl")
+        bmart.to_csv(self.data_path / csv_name)
+        df.to_pickle(self.data_path / df_name)

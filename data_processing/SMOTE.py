@@ -40,9 +40,9 @@ class SMOTESampler(object):
         self.features["label"] = self.labels
         return self.features
 
-    def write_output(self):
+    def write_output(self, df_name: str = 'balanced_train.pkl'):
         self.features["label"] = self.labels
-        self.features.to_pickle(self.data_path / "balanced_train.pkl")
+        self.features.to_pickle(self.data_path / df_name)
         print("length of balanced training data: ")
         print(len(self.features))
 

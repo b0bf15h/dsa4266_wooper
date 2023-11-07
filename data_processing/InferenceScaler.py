@@ -1,5 +1,6 @@
 import pandas as pd
-from sklearn.preprocessing import StandardScaler
+from sklearn import preprocessing
+from sklearn.discriminant_analysis import StandardScaler
 from data_processing.SMOTE import SMOTESampler
 import pickle
 import pathlib
@@ -13,9 +14,7 @@ class InferenceProcessor(object):
     def __init__(
         self,
         data_path: pathlib.Path,
-        scaler_name: str,
-        encoder_name: str,
-        output_filename: str,
+        output_filename: str
     ):
         """
         Initialise object and read in data, encoder, scaler
@@ -23,16 +22,17 @@ class InferenceProcessor(object):
         self.data_path = data_path
         self.output_filename = output_filename
         self.df = pd.read_pickle(self.data_path / self.output_filename)
-        self.scaler = self.get_scaler(scaler_name)
-        self.encoder = self.get_encoder(encoder_name)
-        self.reference = None
+        self.encoder = self.get_encoder()
+        self.scaler = self.get_scaler()
 
-    def get_scaler(self, name: str):
+    def get_scaler(self, name: str = 'scaler_ds0.pkl'):
+        # since training data is balanced, require scaler to be fitted on oversampled balanced data
+        # need import scaler, can't initiate one here on unbalanced data
         with open(self.data_path / name, "rb") as pickle_file:
             scaler = pickle.load(pickle_file)
         return scaler
 
-    def get_encoder(self, name: str):
+    def get_encoder(self, name: str = 'encoder_ds0.pkl'):
         with open(self.data_path / name, "rb") as pickle_file:
             encoder = pickle.load(pickle_file)
         return encoder
@@ -53,12 +53,12 @@ class InferenceProcessor(object):
         """
         numeric_cols = self.df.select_dtypes(include=[float])
         if "relative_sequence_position" in numeric_cols.columns:
-            numeric_cols.drop(["relative_sequence_position"], axis=1, inplace=True)
+            numeric_cols.drop(["relative_sequence_position"], axis=1, inplace=True)  
         self.df[numeric_cols.columns] = self.scaler.transform(numeric_cols)
-
+        
     def encode(self):
         """
-        Encode the 3 categorical features via OHE
+        Encode the 3 categorical features via OHE, save encoder if this dataset is for full model training
         """
         encoded_data = self.encoder.transform(self.df[["sequence", "m1_seq", "p1_seq"]])
         encoded_column_names = self.encoder.get_feature_names_out(
@@ -69,7 +69,6 @@ class InferenceProcessor(object):
         result_df = pd.concat([self.df, encoded_df], axis=1)
         result_df.drop(columns=["sequence", "m1_seq", "p1_seq"], inplace=True)
         self.df = result_df
-
     def write_output(self):
         print("Done processing inference data")
         self.df.to_pickle(self.data_path / self.output_filename)

@@ -12,3 +12,4 @@ tzdata
 lightgbm
 optuna
 deslib
+gdown

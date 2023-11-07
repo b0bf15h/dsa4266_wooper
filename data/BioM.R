@@ -1,7 +1,5 @@
 library(biomaRt)
 ensembl_93 = useEnsembl(biomart="genes",dataset="hsapiens_gene_ensembl", version = 93)
-# listAttributes(ensembl_93)
-#attributePages(ensembl_93)
 query_data = read.csv('data/bmart.csv')
 query = unique(query_data$transcript_id)
 wanted_data = getBM(attributes=c('ensembl_transcript_id','transcript_length'),filters = 'ensembl_transcript_id', values = query, mart = ensembl_93)

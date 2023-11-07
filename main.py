@@ -62,7 +62,7 @@ class WooperModel(object):
         summarised_data = SummariseDataByTranscript(parsed_data).summarise()
         MergeData(summarised_data, self.raw_info, self.data_path).write_data_for_R()
 
-    def advanced_transformations(self, csv_data):
+    def advanced_transformations(self, csv_data: str = 'biomart_data.csv'):
         """
         Merges data with transcript length queried from R, as well as perform train,test split;
         oversampling; normalisation and encoding. Finalised dataframes are ready for use in model training and written into data_path
@@ -77,20 +77,27 @@ class WooperModel(object):
         train, _ = TrainTestSplit(train).train_test_split(
             tt_ratio, data_path, "train_data.pkl", "validation_data.pkl"
         )
+        full_data_sampler = SMOTESampler(self.data_path, merged_data)
+        full_data_sampler.SMOTE()
+        full_data_sampler.write_output('full_balanced_dataset.pkl')
+        fd_scaler = Scaler(self.data_path, 'full_balanced_dataset.pkl')
+        fd_scaler.standardize_train_only()
+        ohe  = OneHotEncoder(
+            self.data_path,
+            'full_dataset0.pkl'
+        )
+        ohe.OHE()
+        ohe.write_output('full_balanced_dataset.pkl')
         sampler = SMOTESampler(self.data_path, train)
         sampler.SMOTE()
         sampler.write_output()
         standard_scaler = Scaler(self.data_path)
         standard_scaler.drop_columns()
         standard_scaler.standardize_train_valid()
-        standard_scaler.combine_train_valid("scaler.pkl")
-        standard_scaler.standardize_train_test("scaler.pkl")
+        standard_scaler.combine_train_valid()
+        standard_scaler.standardize_train_test()
         ohe = OneHotEncoder(
-            "train_final.pkl",
-            "test_final.pkl",
-            "train.pkl",
-            "validation.pkl",
-            self.data_path,
+            self.data_path
         )
         ohe.OHE()
         ohe.write_output()
@@ -101,4 +108,4 @@ if __name__ == "__main__":
     if step == 1:
         model_instance.basic_transformations("dataset0.json.gz", "data.info")
     if step == 2:
-        model_instance.advanced_transformations("biomart_data.csv")
+        model_instance.advanced_transformations()
