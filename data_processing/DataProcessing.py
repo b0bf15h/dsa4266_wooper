@@ -327,6 +327,11 @@ class MergeData(object):
         merged_data = pd.merge(
             self.parsed_data, data_info, on=["transcript_id"], how="left"
         )
+        # weird stuff for ds2
+        # data = merged_data['transcript_position'].copy(deep = True)
+        # merged_data['relative_sequence_position'] = data
+        # merged_data['relative_sequence_position'] = merged_data['relative_sequence_position'].astype(float)
+        merged_data['count'] = merged_data['count'].astype(float)
         merged_data["relative_sequence_position"] = np.round(
             (merged_data["transcript_position"].astype(float))
             / merged_data["transcript_length"],

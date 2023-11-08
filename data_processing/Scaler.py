@@ -38,7 +38,8 @@ class Scaler(object):
     def standardize_train_only(self, train_file:str = 'full_dataset0.pkl', scaler_name:str = 'scaler_ds0.pkl'):
         train_copy = self.train.copy(deep=True)
         train_numeric_cols = train_copy.select_dtypes(include=[float])
-        train_numeric_cols.drop(["relative_sequence_position"], axis=1, inplace=True)
+        if 'relative_sequence_position' in train_numeric_cols.columns:
+            train_numeric_cols.drop(["relative_sequence_position"], axis=1, inplace=True)
         scaler = StandardScaler()
         train_copy[train_numeric_cols.columns] = scaler.fit_transform(
             train_numeric_cols
