@@ -283,6 +283,7 @@ class SummariseDataByTranscript(object):
         new_df = pd.concat([df_mean, df_var], axis=1)
         count = self.df.groupby(self.group).count().reset_index()["sd"]
         new_df["count"] = count
+        new_df['count'] = new_df['count'].astype(float)
         new_df['mean_lower_bound'] = new_df['mean_mean'] - 1.96 * new_df['sd_mean']
         new_df['mean_upper_bound'] = new_df['mean_mean'] + 1.96 * new_df['sd_mean']
         print("DATA SUMMARISATION SUCCESSFUL")
@@ -331,7 +332,6 @@ class MergeData(object):
         # data = merged_data['transcript_position'].copy(deep = True)
         # merged_data['relative_sequence_position'] = data
         # merged_data['relative_sequence_position'] = merged_data['relative_sequence_position'].astype(float)
-        merged_data['count'] = merged_data['count'].astype(float)
         merged_data["relative_sequence_position"] = np.round(
             (merged_data["transcript_position"].astype(float))
             / merged_data["transcript_length"],
