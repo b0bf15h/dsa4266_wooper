@@ -35,18 +35,18 @@ class WooperModel(object):
         worker.drop_columns()
         worker.scale()
         worker.encode()
-        worker.write_output()
+        worker.write_output(output_filename)
 
 
 if __name__ == "__main__":
     model_instance = WooperModel(data_path)
     if step == 1:
         model_instance.basic_transformations(
-            "dataset1.json.gz",
+            "dataset2.json.gz",
         )
     if step==2:
         model_instance.advanced_transformations(
-            "dataset1.pkl",
+            "dataset2.pkl",
             # "dataset3_tx_length.csv"
         )
         

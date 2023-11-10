@@ -73,5 +73,9 @@ class InferenceProcessor(object):
     def write_output(self, output_fname: str):
         print("Done processing inference data")
         self.df.to_pickle(self.data_path / self.output_filename)
-        index = self.output_filename[0:8] + "_ids_and_positions.pkl"
+        if self.output_filename.endswith(".gz"):
+            self.output_filename = self.output_filename[0:-3]
+        if self.output_filename.endswith(".pkl"):
+            self.output_filename = self.output_filename[0:-4]
+        index = self.output_filename + "_ids_and_positions.pkl"
         self.reference.to_pickle(self.data_path / index)

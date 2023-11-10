@@ -61,6 +61,7 @@ class WooperModel(object):
         parsed_data = DataParsing(self.raw_data).unlabelled_data()
         summarised_data = SummariseDataByTranscript(parsed_data).summarise()
         MergeData(summarised_data, self.raw_info, self.data_path).write_data_for_R()
+        # MergeData(parsed_data, self.raw_info, self.data_path).write_data_for_R()
 
     def advanced_transformations(self, csv_data: str = 'biomart_data.csv'):
         """
@@ -71,6 +72,7 @@ class WooperModel(object):
         step1_data = self.data_path / "interm.pkl"
         self.df = pd.read_pickle(step1_data)
         merged_data = MergeData(self.df, csv_data, self.data_path).merge_with_features()
+        # merged_data.to_pickle(self.data_path/'ds0_reads.pkl')
         train, _ = TrainTestSplit(merged_data).train_test_split(
             tt_ratio, data_path, "train_data.pkl", "test_data.pkl"
         )
