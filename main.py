@@ -85,14 +85,19 @@ class WooperModel(object):
         # self.reference = []
 
     # Task 1
-    def parse(self, raw_data, raw_info):
+    def parse(self, raw_data:str, raw_info:str):
         """Transforms zipped unlabelled json data of read level into labelled dataframe at sequence level, prepare for querying transcript length"""
+        # relative path from ./data to where raw data is stored 
+        # raw data has to be in JSON format
         self.raw_data = self.data_path / raw_data
+        # relative path from ./data to where labels are stored
         self.raw_info = self.data_path / raw_info
+        # if your raw data is already unzipped, 
+        # specify the relative path from ./data/raw_data to it AND set unzip = False in unlabelled_data() 
+        # e.g. fname = 'data.json' and unzip = False
         parsed_data = DataParsing(self.raw_data).unlabelled_data()
         summarised_data = SummariseDataByTranscript(parsed_data).summarise()
         MergeData(summarised_data, self.raw_info, self.data_path).write_data_for_R()
-        # MergeData(parsed_data, self.raw_info, self.data_path).write_data_for_R()
 
     def feature_engineer(self, csv_data: str = 'biomart_data.csv'):
         """
@@ -105,24 +110,26 @@ class WooperModel(object):
         merger = MergeData(self.df, csv_data, self.data_path)
         merged_data = merger.merge_with_features()
         merged_data = merger.drop_unused_features(merged_data)
-        # merged_data.to_pickle(self.data_path/'ds0_reads.pkl')
         train, _ = TrainTestSplit(merged_data).train_test_split(
             tt_ratio, data_path, "train_data.pkl", "test_data.pkl"
         )
         train, _ = TrainTestSplit(train).train_test_split(
             tt_ratio, data_path, "train_data.pkl", "validation_data.pkl"
         )
-        full_data_sampler = SMOTESampler(self.data_path, merged_data)
-        full_data_sampler.SMOTE()
-        full_data_sampler.write_output('full_balanced_dataset.pkl')
-        fd_scaler = Scaler(self.data_path, 'full_balanced_dataset.pkl')
-        fd_scaler.standardize_train_only()
-        ohe  = OneHotEncoder(
-            self.data_path,
-            'full_dataset0.pkl'
-        )
-        ohe.OHE()
-        ohe.write_output('full_balanced_dataset.pkl')
+        # Below code block is used to generate balanced training data from the input raw data
+        # Only used for training final model
+        # __________________________________________________
+        # full_data_sampler = SMOTESampler(self.data_path, merged_data)
+        # full_data_sampler.SMOTE()
+        # full_data_sampler.write_output('full_balanced_dataset.pkl')
+        # fd_scaler = Scaler(self.data_path, 'full_balanced_dataset.pkl')
+        # fd_scaler.standardize_train_only()
+        # ohe  = OneHotEncoder(
+        #     self.data_path,
+        #     'full_dataset0.pkl'
+        # )
+        # ohe.OHE()
+        # ohe.write_output('full_balanced_dataset.pkl')
         sampler = SMOTESampler(self.data_path, train)
         sampler.SMOTE()
         sampler.write_output()

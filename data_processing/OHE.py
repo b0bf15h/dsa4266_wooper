@@ -53,7 +53,7 @@ class OneHotEncoder(object):
 
     def OHE(self):
         """OHE all 4 DFs if possible"""
-        self.train_final = self.one_hot_encode(self.train_final, False, 'encoder_ds0.pkl')
+        self.train_final = self.one_hot_encode(self.train_final, False)
         if isinstance(self.test_final, pd.DataFrame):
             self.test_final = self.one_hot_encode(self.test_final, True)
         if isinstance(self.train, pd.DataFrame):

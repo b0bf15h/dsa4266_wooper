@@ -151,7 +151,7 @@ class DataParsing(object):
     def remove_overlapping_p1(self, seq: str):
         return seq[4]
 
-    def unlabelled_data(self, unzip: bool = True) -> pd.DataFrame:
+    def unlabelled_data(self, fname:str = '', unzip: bool = True) -> pd.DataFrame:
         """
         Returns dataframe where each row is a read
         """
@@ -174,7 +174,7 @@ class DataParsing(object):
             print("step 2 complete")
             os.remove("data.json")
         else:
-            with open(self.data_path / "data.json", "r") as file:
+            with open(self.data_path / fname, "r") as file:
                 for line in file:
                     data.append(json.loads(line))
             print("step 2 complete")
