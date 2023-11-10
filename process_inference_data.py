@@ -29,7 +29,9 @@ class WooperModel(object):
         csv_data = self.data_path/csv_data
         step1_data = self.data_path/'interm.pkl'
         self.df = pd.read_pickle(step1_data)
-        merged_data = MergeData(self.df, csv_data, self.data_path).merge_with_features()
+        merger = MergeData(self.df, csv_data, self.data_path)
+        merged_data = merger.merge_with_features()
+        merged_data = merger.drop_unused_features(merged_data)
         merged_data.to_pickle(self.data_path/output_filename)
         worker = InferenceProcessor(self.data_path, output_filename)
         worker.drop_columns()
@@ -42,11 +44,11 @@ if __name__ == "__main__":
     model_instance = WooperModel(data_path)
     if step == 1:
         model_instance.basic_transformations(
-            "dataset2.json.gz",
+            "dataset1.json.gz",
         )
     if step==2:
         model_instance.advanced_transformations(
-            "dataset2.pkl",
+            "dataset1.pkl",
             # "dataset3_tx_length.csv"
         )
         

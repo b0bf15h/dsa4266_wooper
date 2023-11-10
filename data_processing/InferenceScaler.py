@@ -72,7 +72,9 @@ class InferenceProcessor(object):
         self.df = result_df
     def write_output(self, output_fname: str):
         print("Done processing inference data")
-        self.df.to_pickle(self.data_path / self.output_filename)
+        self.df.to_pickle(self.data_path / output_fname)
+        if (output_fname.startswith('unnormalised')):
+            return
         if self.output_filename.endswith(".gz"):
             self.output_filename = self.output_filename[0:-3]
         if self.output_filename.endswith(".pkl"):

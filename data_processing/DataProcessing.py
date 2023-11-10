@@ -5,6 +5,7 @@ import gzip
 import os
 import pathlib
 import scipy.stats
+import re
 from pathlib import Path
 
 
@@ -150,7 +151,7 @@ class DataParsing(object):
     def remove_overlapping_p1(self, seq: str):
         return seq[4]
 
-    def unlabelled_data(self, unzip:bool = True) -> pd.DataFrame:
+    def unlabelled_data(self, unzip: bool = True) -> pd.DataFrame:
         """
         Returns dataframe where each row is a read
         """
@@ -162,22 +163,21 @@ class DataParsing(object):
                     # Read the compressed data and write it to the output file
                     json_data = gzipped_file.read()
                     json_file.write(json_data)
-        
+
         print("step 1 complete")
 
         data = []
         if unzip:
-            with open('data.json', "r") as file:
+            with open("data.json", "r") as file:
                 for line in file:
                     data.append(json.loads(line))
             print("step 2 complete")
             os.remove("data.json")
         else:
-            with open(self.data_path/'data.json', "r") as file:
+            with open(self.data_path / "data.json", "r") as file:
                 for line in file:
                     data.append(json.loads(line))
             print("step 2 complete")
-
 
         (
             transcript_id,
@@ -251,8 +251,10 @@ class SummariseDataByTranscript(object):
             "m1_seq",
             "p1_seq",
         ]
+
     def find_max_abs_diff(self, row):
-        return max(abs(row['m1_mean'] - row['mean']), abs(row['p1_mean'] - row['mean'])) 
+        return max(abs(row["m1_mean"] - row["mean"]), abs(row["p1_mean"] - row["mean"]))
+
     def summarise(self) -> pd.DataFrame:
         """_summary_
 
@@ -270,7 +272,7 @@ class SummariseDataByTranscript(object):
                 "m1_mean": "m1_mean_mean",
                 "p1_dtime": "p1_dtime_mean",
                 "p1_sd": "p1_sd_mean",
-                "p1_mean": "p1_mean_mean"
+                "p1_mean": "p1_mean_mean",
             }
         )
         df_var = (
@@ -288,18 +290,19 @@ class SummariseDataByTranscript(object):
                 "m1_mean": "m1_mean_var",
                 "p1_dtime": "p1_dtime_var",
                 "p1_sd": "p1_sd_var",
-                "p1_mean": "p1_mean_var"
+                "p1_mean": "p1_mean_var",
             }
         )
         new_df = pd.concat([df_mean, df_var], axis=1)
         count = self.df.groupby(self.group).count().reset_index()["sd"]
         new_df["count"] = count
-        new_df['count'] = new_df['count'].astype(float)
-        new_df['mean_lower_bound'] = new_df['mean_mean'] - 1.96 * new_df['sd_mean']
-        new_df['mean_upper_bound'] = new_df['mean_mean'] + 1.96 * new_df['sd_mean']
+        new_df["count"] = new_df["count"].astype(float)
+        new_df["mean_lower_bound"] = new_df["mean_mean"] - 1.96 * new_df["sd_mean"]
+        new_df["mean_upper_bound"] = new_df["mean_mean"] + 1.96 * new_df["sd_mean"]
         print("DATA SUMMARISATION SUCCESSFUL")
         new_df = new_df.fillna(0)
         return new_df
+
 
 class MergeData(object):
     """
@@ -323,7 +326,7 @@ class MergeData(object):
             on=["transcript_id", "transcript_position"],
             how="left",
         )
-        columns_to_drop = ['start', 'end']
+        columns_to_drop = ["start", "end"]
         for column in columns_to_drop:
             if column in merged_data.columns:
                 merged_data.drop(columns=column, inplace=True)
@@ -356,7 +359,33 @@ class MergeData(object):
         print("DATA MERGING SUCCESSFUL")
         return merged_data
 
-    def write_data_for_R(self, data_type: str = "labelled", df_name: str = 'interm.pkl', csv_name: str = 'bmart.csv'):
+    def drop_unused_features(self, merged_data):
+        cols_to_drop = [
+            "ensembl_gene_id",
+            "start_position",
+            "end_position",
+            "strand",
+            "transcription_start_site",
+            "transcript_count",
+            "percentage_gene_gc_content",
+            "gene_biotype",
+            "transcript_biotype",
+        ]
+        for column in cols_to_drop:
+            if column in merged_data.columns:
+                merged_data.drop(columns=column, inplace=True)
+        return merged_data
+    def truncate_string(self, input_string):
+        match = re.search(r'\.\d+$', input_string)
+        if match:
+            return input_string[:match.start()]
+        return input_string
+    def write_data_for_R(
+        self,
+        data_type: str = "labelled",
+        df_name: str = "interm.pkl",
+        csv_name: str = "bmart.csv",
+    ):
         """
         Writes data to be used for R querying into data path, as well as store intermediate Df(with labels) for later use
         """
@@ -370,5 +399,7 @@ class MergeData(object):
             )
             return
         bmart = df[["transcript_id", "transcript_position"]]
+        bmart['transcript_id'] = bmart['transcript_id'].astype(str)
+        bmart['transcript_id'] = bmart['transcript_id'].apply(self.truncate_string)
         bmart.to_csv(self.data_path / csv_name)
         df.to_pickle(self.data_path / df_name)

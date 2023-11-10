@@ -71,7 +71,9 @@ class WooperModel(object):
         csv_data = self.data_path / csv_data
         step1_data = self.data_path / "interm.pkl"
         self.df = pd.read_pickle(step1_data)
-        merged_data = MergeData(self.df, csv_data, self.data_path).merge_with_features()
+        merger = MergeData(self.df, csv_data, self.data_path)
+        merged_data = merger.merge_with_features()
+        merged_data = merger.drop_unused_features(merged_data)
         # merged_data.to_pickle(self.data_path/'ds0_reads.pkl')
         train, _ = TrainTestSplit(merged_data).train_test_split(
             tt_ratio, data_path, "train_data.pkl", "test_data.pkl"
