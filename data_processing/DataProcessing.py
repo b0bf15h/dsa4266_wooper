@@ -5,6 +5,7 @@ import gzip
 import os
 import pathlib
 import scipy.stats
+from pathlib import Path
 
 
 class DataParsing(object):
@@ -12,6 +13,7 @@ class DataParsing(object):
 
     def __init__(self, raw_data):
         self.raw_data = raw_data
+        self.data_path = raw_data
 
     def find_keys(self, d: dict) -> list:
         """
@@ -148,25 +150,34 @@ class DataParsing(object):
     def remove_overlapping_p1(self, seq: str):
         return seq[4]
 
-    def unlabelled_data(self) -> pd.DataFrame:
+    def unlabelled_data(self, unzip:bool = True) -> pd.DataFrame:
         """
         Returns dataframe where each row is a read
         """
         # Decompressing .json.gz into a json file
-        output_file = "data.json"
-        with gzip.open(self.raw_data, "rb") as gzipped_file:
-            with open(output_file, "wb") as json_file:
-                # Read the compressed data and write it to the output file
-                json_data = gzipped_file.read()
-                json_file.write(json_data)
+        if unzip:
+            output_file = "data.json"
+            with gzip.open(self.raw_data, "rb") as gzipped_file:
+                with open(output_file, "wb") as json_file:
+                    # Read the compressed data and write it to the output file
+                    json_data = gzipped_file.read()
+                    json_file.write(json_data)
+        
         print("step 1 complete")
 
         data = []
-        with open("data.json", "r") as file:
-            for line in file:
-                data.append(json.loads(line))
-        print("step 2 complete")
-        os.remove("data.json")
+        if unzip:
+            with open('data.json', "r") as file:
+                for line in file:
+                    data.append(json.loads(line))
+            print("step 2 complete")
+            os.remove("data.json")
+        else:
+            with open(self.data_path/'data.json', "r") as file:
+                for line in file:
+                    data.append(json.loads(line))
+            print("step 2 complete")
+
 
         (
             transcript_id,
@@ -287,6 +298,7 @@ class SummariseDataByTranscript(object):
         new_df['mean_lower_bound'] = new_df['mean_mean'] - 1.96 * new_df['sd_mean']
         new_df['mean_upper_bound'] = new_df['mean_mean'] + 1.96 * new_df['sd_mean']
         print("DATA SUMMARISATION SUCCESSFUL")
+        new_df = new_df.fillna(0)
         return new_df
 
 class MergeData(object):
@@ -311,6 +323,10 @@ class MergeData(object):
             on=["transcript_id", "transcript_position"],
             how="left",
         )
+        columns_to_drop = ['start', 'end']
+        for column in columns_to_drop:
+            if column in merged_data.columns:
+                merged_data.drop(columns=column, inplace=True)
 
         print("DATA MERGING SUCCESSFUL")
         return merged_data

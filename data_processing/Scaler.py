@@ -45,8 +45,8 @@ class Scaler(object):
             train_numeric_cols
         )
         # save the scaler for transforming other datasets
-        with open(self.data_path/scaler_name, "wb") as pickle_file:
-            pickle.dump(scaler, pickle_file)
+        # with open(self.data_path/scaler_name, "wb") as pickle_file:
+        #     pickle.dump(scaler, pickle_file)
         train_copy.to_pickle(self.data_path / train_file)
     def standardize_train_valid(self, train_file: str = 'train.pkl', validation_file: str = 'validation.pkl'):
         """
@@ -66,7 +66,8 @@ class Scaler(object):
         validation_numeric_cols.drop(
             ["relative_sequence_position"], axis=1, inplace=True
         )
-        validation_copy[validation_numeric_cols.columns] = scaler.transform(
+        scaler = StandardScaler()
+        validation_copy[validation_numeric_cols.columns] = scaler.fit_transform(
             validation_numeric_cols
         )
         validation_copy.to_pickle(self.data_path / validation_file)
@@ -81,19 +82,20 @@ class Scaler(object):
         train_numeric_cols.drop(["relative_sequence_position"], axis=1, inplace=True)
         scaler = StandardScaler()
         new_train[train_numeric_cols.columns] = scaler.fit_transform(train_numeric_cols)
-        with open(self.data_path / scaler_name, "wb") as pickle_file:
-            pickle.dump(scaler, pickle_file)
+        # with open(self.data_path / scaler_name, "wb") as pickle_file:
+        #     pickle.dump(scaler, pickle_file)
         self.new_train = new_train
 
     def standardize_train_test(self, scaler_name: str = 'scaler.pkl', train_file: str = 'train_final.pkl', test_file: str = 'test_final.pkl' ):
         """loads specified scaler and scales test data, before writing train_final.pkl and test_final.pkl"""
         train_numeric_cols = self.new_train.select_dtypes(include=[float])
         train_numeric_cols.drop(["relative_sequence_position"], axis=1, inplace=True)
-        with open(self.data_path / scaler_name, "rb") as pickle_file:
-            scaler = pickle.load(pickle_file)
+        # with open(self.data_path / scaler_name, "rb") as pickle_file:
+        #     scaler = pickle.load(pickle_file)
+        scaler = StandardScaler()
         test_copy = self.test.copy(deep=True)
         test_numeric_cols = test_copy.select_dtypes(include=[float])
         test_numeric_cols.drop(["relative_sequence_position"], axis=1, inplace=True)
-        test_copy[test_numeric_cols.columns] = scaler.transform(test_numeric_cols)
+        test_copy[test_numeric_cols.columns] = scaler.fit_transform(test_numeric_cols)
         test_copy.to_pickle(self.data_path / test_file)
         self.new_train.to_pickle(self.data_path / train_file)

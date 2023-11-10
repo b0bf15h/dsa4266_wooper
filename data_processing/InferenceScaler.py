@@ -28,8 +28,9 @@ class InferenceProcessor(object):
     def get_scaler(self, name: str = 'scaler_ds0.pkl'):
         # since training data is balanced, require scaler to be fitted on oversampled balanced data
         # need import scaler, can't initiate one here on unbalanced data
-        with open(self.data_path / name, "rb") as pickle_file:
-            scaler = pickle.load(pickle_file)
+        # with open(self.data_path / name, "rb") as pickle_file:
+        #     scaler = pickle.load(pickle_file)
+        scaler = StandardScaler()
         return scaler
 
     def get_encoder(self, name: str = 'encoder_ds0.pkl'):
@@ -54,7 +55,7 @@ class InferenceProcessor(object):
         numeric_cols = self.df.select_dtypes(include=[float])
         if "relative_sequence_position" in numeric_cols.columns:
             numeric_cols.drop(["relative_sequence_position"], axis=1, inplace=True)  
-        self.df[numeric_cols.columns] = self.scaler.transform(numeric_cols)
+        self.df[numeric_cols.columns] = self.scaler.fit_transform(numeric_cols)
         
     def encode(self):
         """
@@ -69,7 +70,7 @@ class InferenceProcessor(object):
         result_df = pd.concat([self.df, encoded_df], axis=1)
         result_df.drop(columns=["sequence", "m1_seq", "p1_seq"], inplace=True)
         self.df = result_df
-    def write_output(self):
+    def write_output(self, output_fname: str):
         print("Done processing inference data")
         self.df.to_pickle(self.data_path / self.output_filename)
         index = self.output_filename[0:8] + "_ids_and_positions.pkl"
