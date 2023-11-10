@@ -1,0 +1,1 @@
+python main.py -d ./data -s 3 -m ./models -mn 'lgbm_model.pkl' -dn 'HepG2_R6r1.pkl'

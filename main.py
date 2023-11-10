@@ -7,6 +7,7 @@ from data_processing.SMOTE import SMOTESampler
 from data_processing.TrainTestSplit import TrainTestSplit
 from data_processing.Scaler import Scaler
 from data_processing.OHE import OneHotEncoder
+from Predictor import Predictor
 import pandas as pd
 import argparse
 import pathlib
@@ -21,6 +22,30 @@ parser.add_argument(
     action="store",
     required=True,
     help="Path to raw data and labels",
+)
+parser.add_argument(
+    "--model_path",
+    "-m",
+    type=pathlib.Path,
+    action="store", 
+    required = False,
+    help = "Path to model for predictions"
+)
+parser.add_argument(
+    "--model_name",
+    "-mn",
+    type=str,
+    action="store", 
+    required = False,
+    help = "Name of model"
+)
+parser.add_argument(
+    "--data_name",
+    "-dn",
+    type=str,
+    action="store", 
+    required = False,
+    help = "Name of dataset to predict on"
 )
 parser.add_argument(
     "--train_test_ratio",
@@ -41,20 +66,26 @@ parser.add_argument(
 )
 args = parser.parse_args()
 data_path = args.data_path
+model_path = args.model_path
+model_name = args.model_name
+data_name = args.data_name
 tt_ratio = args.train_test_ratio
 step = args.step
 
 
 class WooperModel(object):
-    def __init__(self, data_path):
+    def __init__(self, data_path, model_path = None, model_name = None, data_name = None):
         self.raw_data = []
         self.raw_info = []
         self.data_path = data_path
+        self.model_path = model_path
         self.df = None
+        self.model_name = model_name
+        self.data_name = data_name
         # self.reference = []
 
     # Task 1
-    def basic_transformations(self, raw_data, raw_info):
+    def parse(self, raw_data, raw_info):
         """Transforms zipped unlabelled json data of read level into labelled dataframe at sequence level, prepare for querying transcript length"""
         self.raw_data = self.data_path / raw_data
         self.raw_info = self.data_path / raw_info
@@ -63,7 +94,7 @@ class WooperModel(object):
         MergeData(summarised_data, self.raw_info, self.data_path).write_data_for_R()
         # MergeData(parsed_data, self.raw_info, self.data_path).write_data_for_R()
 
-    def advanced_transformations(self, csv_data: str = 'biomart_data.csv'):
+    def feature_engineer(self, csv_data: str = 'biomart_data.csv'):
         """
         Merges data with transcript length queried from R, as well as perform train,test split;
         oversampling; normalisation and encoding. Finalised dataframes are ready for use in model training and written into data_path
@@ -105,11 +136,20 @@ class WooperModel(object):
         )
         ohe.OHE()
         ohe.write_output()
+    def predict(self):
+        pred = Predictor(self.model_path, self.data_path, self.model_name, self.data_name)
+        pred.drop_unused_cols()
+        pred.predict_probs()
+        pred.write_output()
 
 
 if __name__ == "__main__":
-    model_instance = WooperModel(data_path)
     if step == 1:
-        model_instance.basic_transformations("dataset0.json.gz", "data.info")
+        model_instance = WooperModel(data_path)
+        model_instance.parse("dataset0.json.gz", "data.info")
     if step == 2:
-        model_instance.advanced_transformations()
+        model_instance = WooperModel(data_path)
+        model_instance.feature_engineer()
+    if step == 3:
+        model_instance = WooperModel(data_path, model_path, model_name, data_name)
+        model_instance.predict()
