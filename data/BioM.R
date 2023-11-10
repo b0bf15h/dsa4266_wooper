@@ -11,6 +11,5 @@ if (length(wanted_data$ensembl_transcript_id) != length(query)) {
   data = getBM(attributes= attributes, filters = 'ensembl_transcript_id', values = set_difference, mart = ensembl_93)
   wanted_data = rbind(data, wanted_data)
 }
-wanted_data
 write.csv(wanted_data, 'data/biomart_data.csv', row.names = FALSE)
 
