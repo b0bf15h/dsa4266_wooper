@@ -20,9 +20,9 @@ class WooperModel(object):
         # self.reference = []
 
     # Task 1
-    def parse(self, raw_data):
+    def parse(self, raw_data:str):
         self.raw_data = self.data_path/raw_data
-        parsed_data = DataParsing(self.raw_data).unlabelled_data()
+        parsed_data = DataParsing(self.raw_data).unlabelled_data(fname = 'data.json', unzip=False)
         summarised_data = SummariseDataByTranscript(parsed_data).summarise()
         MergeData(summarised_data, None, self.data_path).write_data_for_R("unlabelled")
     def feature_engineer(self, output_filename, csv_data:str = 'biomart_data.csv'):
@@ -44,11 +44,11 @@ if __name__ == "__main__":
     model_instance = WooperModel(data_path)
     if step == 1:
         model_instance.parse(
-            "HepG2_R6r1",
+            "prediction_data"
         )
     if step==2:
         model_instance.feature_engineer(
-            "HepG2_R6r1.pkl",
+            "prediction_data.pkl",
             # "dataset3_tx_length.csv"
         )
         

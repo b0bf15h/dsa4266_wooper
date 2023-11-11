@@ -29,7 +29,7 @@ class OneHotEncoder(object):
         if validation != '':
             self.validation = pd.read_pickle(self.data_path / validation)
 
-    def one_hot_encode(self, df: pd.DataFrame, encoder_available: bool = False, encoder_name: str = 'OHE.pkl'):
+    def one_hot_encode(self, df: pd.DataFrame, encoder_available: bool = False, encoder_name: str = 'encoder_ds0.pkl'):
         """Performs OneHot Encoding on the df, and writes the used encoder for future use if no encoders are available"""
         if not encoder_available:
             enc = preprocessing.OneHotEncoder(

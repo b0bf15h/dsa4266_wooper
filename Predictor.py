@@ -12,6 +12,14 @@ class Predictor(object):
         self.model = self.get_model()
         self.data = self.get_data()
         self.probs = None
+        self.index = self.get_index()
+    def get_index(self):
+        if self.data_name.endswith('.pkl'):
+            index_name = self.data_name[0:-4]+'_ids_and_positions.pkl'
+        with open(self.data_path/ index_name, 'rb') as f:
+            id = pickle.load(f)
+        print('Index retrieved successfully')
+        return id
     def get_model(self):
         with open(self.model_path/ self.model_name, 'rb') as f:
             m = pickle.load(f)
@@ -38,8 +46,10 @@ class Predictor(object):
         self.probs = probs
         print("Predictions have been made")
     def write_output(self):
-        output_fname = self.data_name + '_probs.pkl'
-        with open(self.data_path/output_fname, 'wb') as file:
-            pickle.dump(self.probs, file)
+        self.index['score'] = self.probs
+        if self.data_name.endswith('.pkl'):
+            data_name = self.data_name[0:-4]
+        output_fname = data_name + '_probs.csv'
+        self.index.to_csv(self.data_path/output_fname, index = False)
         print("Predictions written to data path")
              

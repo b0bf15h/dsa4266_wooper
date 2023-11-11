@@ -174,7 +174,7 @@ class DataParsing(object):
             print("step 2 complete")
             os.remove("data.json")
         else:
-            with open(self.data_path / fname, "r") as file:
+            with open(self.data_path / fname, "r", encoding = 'utf-8') as file:
                 for line in file:
                     data.append(json.loads(line))
             print("step 2 complete")

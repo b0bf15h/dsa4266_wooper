@@ -1,1 +1,3 @@
-python main.py -d ./data -s 3 -m ./models -mn 'lgbm_model.pkl' -dn 'HepG2_R6r1.pkl'
+./pull_data.sh
+./process_inference_data.sh 
+python main.py -d ./data -s 3 -m ./models -mn 'model.pkl' -dn 'prediction_data.pkl'

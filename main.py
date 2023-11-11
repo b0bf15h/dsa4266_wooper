@@ -21,7 +21,7 @@ parser.add_argument(
     type=pathlib.Path,
     action="store",
     required=True,
-    help="Path to raw data and labels",
+    help="Relative path to raw data and labels from dsa4266_wooper",
 )
 parser.add_argument(
     "--model_path",
@@ -29,7 +29,7 @@ parser.add_argument(
     type=pathlib.Path,
     action="store", 
     required = False,
-    help = "Path to model for predictions"
+    help = "Relative path to raw data and labels from dsa4266_wooper"
 )
 parser.add_argument(
     "--model_name",
@@ -126,7 +126,10 @@ class WooperModel(object):
         # fd_scaler.standardize_train_only()
         # ohe  = OneHotEncoder(
         #     self.data_path,
-        #     'full_dataset0.pkl'
+        #     'full_dataset0.pkl',
+        #     '',
+        #     '',
+        #     ''
         # )
         # ohe.OHE()
         # ohe.write_output('full_balanced_dataset.pkl')
