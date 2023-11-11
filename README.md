@@ -118,3 +118,18 @@ The relative path to the raw data from **dsa4266_wooper/data** and the name of t
 This script will output 3 pickled dataframes and 1 csv file, similar to the outputs of **process_inference_data.sh**, the extra .pkl file contains unnormalised data which may be useful for analysis.\
 \
 **E.g.** A549_R5r1.pkl, unnormalised_A549_R5r1.pkl, A549_R5r1_ids_and_positions.pkl and biomart_data.csv
+
+## Making Predictions (~4 mins using SGNex_A549_directRNA_replicate5_run1 raw data)
+To make predictions on the provided test data, first ensure that the following arguments are correct,\
+\
+In **process_inference_data.py**, under **parse()** , **unlabelled_data()** is called with **fname = 'data.json', unzip = False**.\
+In **process_inference_data.py** at the End-of-File, **parse()** is called with **raw_data = 'prediction_data'** and\
+**feature_engineer()** is called with **output_filename = 'prediction_data.pkl'**\
+\
+run the following command from the **dsa4266_wooper** directory
+```
+./predictions.sh
+```
+The shell script takes care of pulling the relevant files from a Google Drive Folder into the machine and makes predictions, you do not need to manually download anything.\
+\
+The predictions will be written to **dsa4266_wooper/data** with the name **prediction_data_probs.csv**.
