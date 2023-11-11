@@ -20,20 +20,27 @@ class WooperModel(object):
         # self.reference = []
 
     # Task 1
-    def parse(self, raw_data):
+    def parse(self, raw_data, index:str = 'data.index'):
         self.raw_data = self.data_path/raw_data
-        parsed_data = DataParsing(self.raw_data).unlabelled_data()
+        self.info = self.raw_data/index
+        parsed_data = DataParsing(self.raw_data).unlabelled_data(False)
         summarised_data = SummariseDataByTranscript(parsed_data).summarise()
-        MergeData(summarised_data, None, self.data_path).write_data_for_R("unlabelled")
+        MergeData(summarised_data, self.info, self.data_path).write_data_for_R()
+        # MergeData(parsed_data, self.info, self.data_path).write_data_for_R(df_name = 'reads.pkl')
     def feature_engineer(self, output_filename, csv_data:str = 'biomart_data.csv'):
         csv_data = self.data_path/csv_data
         step1_data = self.data_path/'interm.pkl'
         self.df = pd.read_pickle(step1_data)
-        merger = MergeData(self.df, csv_data, self.data_path)
-        merged_data = merger.merge_with_features()
-        merged_data = merger.drop_unused_features(merged_data)
+        # reads = pd.read_pickle(self.data_path/'reads.pkl')
+        # merged_reads = MergeData(reads, csv_data, self.data_path).merge_with_features()
+        # merged_reads.to_pickle(self.data_path/(f'reads_{output_filename}'))
+        merged_data = MergeData(self.df, csv_data, self.data_path).merge_with_features()
         merged_data.to_pickle(self.data_path/output_filename)
         worker = InferenceProcessor(self.data_path, output_filename)
+        worker2 = InferenceProcessor(self.data_path, output_filename)
+        worker2.drop_columns()
+        worker2.encode()
+        worker2.write_output(f'unnormalised_{output_filename}')
         worker.drop_columns()
         worker.scale()
         worker.encode()
@@ -44,11 +51,11 @@ if __name__ == "__main__":
     model_instance = WooperModel(data_path)
     if step == 1:
         model_instance.parse(
-            "HepG2_R6r1",
+            "MCF7_R3r1",
         )
     if step==2:
         model_instance.feature_engineer(
-            "HepG2_R6r1.pkl",
+            "MCF7_R3r1.pkl",
             # "dataset3_tx_length.csv"
         )
         
