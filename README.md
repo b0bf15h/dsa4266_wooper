@@ -66,6 +66,8 @@ Afterwards, from dsa4266_wooper run
 ```
 ./data_processing.sh
 ```
+The relative path to the raw data and labels from **dsa4266_wooper/data** should be specified in the **parse()** function in **main.py**.\
+\
 We use 0.8 for both train-test split and train-validation split. \
 You can set your own ratio by modifying the following line in data_processing.sh
 ```
@@ -75,7 +77,7 @@ This script will output 4 pickled dataframes, the first 2 can be used for hyperp
 \
 **E.g.** "train_OHE.pkl" , "validation_OHE.pkl", "train_final_OHE.pkl", "test_final_OHE.pkl".
 
-### If your raw data is not zipped, then specify unzip = False, and the filename of your data file in the unlabelled_data() function
+### If your raw data is not zipped, then modify the unlabelled_data() function in the respective python scripts run by the shell script
 **E.g.** Replacing the first line with the second line
 ```
 parsed_data = DataParsing(self.raw_data).unlabelled_data()
@@ -96,7 +98,7 @@ To prepare unlabelled raw data for inference, run the following command from the
 ```
 ./process_inference_data.sh
 ```
-The relative path to the raw data from **dsa4266_wooper/data** and the name of the output file should be specified in the **parse()** and **feature_engineer()** functions respectively. \
+The relative path to the raw data from **dsa4266_wooper/data** and the name of the output file should be specified in the **parse()** and **feature_engineer()** functions in **process_inference_data.py** respectively. \
 \
 For dataset3.json.gz you should **uncomment the specified .csv file in feature_engineer() inside process_inference_data.py**. \
 \
@@ -111,7 +113,7 @@ To prepare unlabelled raw data for further analysis, run the following command f
 ```
 ./process_task2.sh
 ```
-The relative path to the raw data from **dsa4266_wooper/data** and the name of the output file should be specified in the **parse()** and **feature_engineer()** functions respectively.\
+The relative path to the raw data from **dsa4266_wooper/data** and the name of the output file should be specified in the **parse()** and **feature_engineer()** functions in **process_task2.py** respectively.\
 \
 This script will output 3 pickled dataframes and 1 csv file, similar to the outputs of **process_inference_data.sh**, the extra .pkl file contains unnormalised data which may be useful for analysis.\
 \
