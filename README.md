@@ -75,4 +75,33 @@ python main.py -d ./data -s 2  # add -r 0.7 for 70-30 split
 This script will output 4 pickled dataframes, the first 2 can be used for hyperparameter tuning while the next 2 are used to evaluate model performance.
 "train_OHE.pkl" , "validation_OHE.pkl", "train_final_OHE.pkl", "test_final_OHE.pkl".
 
+### If your raw data is not zipped, then specify unzip = False, and the filename of your data file in the unlabelled_data() function
+E.g. Replacing the first line with the second line
+```
+parsed_data = DataParsing(self.raw_data).unlabelled_data()
 
+parsed_data = DataParsing(self.raw_data).unlabelled_data(fname = 'data.json', unzip = False)
+
+```
+
+
+## Preparing Raw Data for Inference (~2 mins using dataset1.json.gz, 3 mins using SGNex_A549_directRNA_replicate5_run1)
+To prepare unlabelled raw data for inference, run the following command from the dsa4266_wooper directory
+```
+./process_inference_data.sh
+```
+The relative path to the raw data from dsa4266_wooper/data and the name of the output file should be specified in the parse() and feature_engineer() functions respectively.
+For dataset3.json.gz you should uncomment the specified .csv file in feature_engineer() inside process_inference_data.py.
+
+This script will output 2 pickled dataframes, one is used as input to the model while the other one is used as an index since it contains identifying information for each sequence.
+E.g. dataset1.pkl and dataset1_ids_and_positions.pkl
+
+## Preparing Raw Data for Further Analysis (~2.5 mins using SGNex_A549_directRNA_replicate5_run1)
+To prepare unlabelled raw data for further analysis, run the following command from the dsa4266_wooper directory
+```
+./process_task2.sh
+```
+The relative path to the raw data from dsa4266_wooper/data and the name of the output file should be specified in the parse() and feature_engineer() functions respectively.
+
+This script will output 3 pickled dataframes, one of them has numerical features standardised via StandardScaler, one of them is unnormalised and one of them serves as the index.
+E.g. A549_R5r1.pkl, unnormalised_A549_R5r1.pkl and A549_R5r1_ids_and_positions.pkl
