@@ -55,7 +55,11 @@ chmod +x r_setup.sh
 ```
 
 ## Generating Training Data (~3 mins using dataset0.json.gz and data.info)
-Cd into **dsa4266_wooper**, you can save some time by running the following command and making all shell scripts executable
+Change directory into **dsa4266_wooper**.
+```
+cd dsa4266_wooper
+```
+You can save some time by running the following command and making all shell scripts executable
 ```
 chmod +x *.sh
 ```
