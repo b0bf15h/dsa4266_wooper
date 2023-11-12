@@ -38,7 +38,6 @@ class Predictor(object):
         if 'relative_sequence_position' in d.columns:
             self.has_rp = True
         self.data = d
-        print(len(self.data))
         print('Data retrieved successfully')
         return
     def drop_unused_cols(self):
@@ -49,10 +48,8 @@ class Predictor(object):
         for col in cols_to_drop:
             if col in self.data.columns:
                 self.data.drop(columns=col, inplace=True)
-        print(len(self.data))
     def drop_na_rows(self):
         self.data.dropna(inplace=True)
-        print(len(self.data))
     def predict_probs (self):
         pairs = self.model.predict_proba(self.data)
         probs = [pair[1] for pair in pairs]
