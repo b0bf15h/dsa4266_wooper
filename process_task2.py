@@ -46,7 +46,7 @@ class WooperModel(object):
         summarised_data = SummariseDataByTranscript(parsed_data).summarise()
         MergeData(summarised_data, self.info, self.data_path).write_data_for_R()
         # MergeData(parsed_data, self.info, self.data_path).write_data_for_R(df_name = 'reads.pkl')
-    def feature_engineer(self, output_filename, csv_data:str):
+    def feature_engineer(self, output_filename, csv_data:str='biomart_data.csv'):
         csv_data = self.data_path/csv_data
         step1_data = self.data_path/'interm.pkl'
         self.df = pd.read_pickle(step1_data)
@@ -70,12 +70,11 @@ if __name__ == "__main__":
     model_instance = WooperModel(data_path)
     if step == 1:
         model_instance.parse(
-            data_name,
+            data_name
         )
     if step==2:
         model_instance.feature_engineer(
-            data_name,
-            info_name
+            data_name
         )
         
         
