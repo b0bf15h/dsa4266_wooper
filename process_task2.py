@@ -7,9 +7,28 @@ import pathlib
 parser = argparse.ArgumentParser(prog = 'process_inference_data.py', description = 'Process new batch of data to be ready for inference')
 parser.add_argument('--data_path', '-d', type = pathlib.Path, action = 'store' , required = True, help = 'Path to raw data and labels')
 parser.add_argument('--step', '-s', type = int, action = 'store', required = True, help = 'Step 1 is parsing json data and creating df, to be done in python. Step 2 requires output from R script which queries Biomart for additional features')
+parser.add_argument(
+    "--data_name",
+    "-dn",
+    type=str,
+    action="store", 
+    required = False,
+    help = "Name of dataset to process/predict/train on"
+)
+parser.add_argument(
+    "--info_name",
+    "-in",
+    type=str,
+    action="store", 
+    required = False,
+    default = 'biomart_data.csv',
+    help = "Name of queried csv data "
+)
 args = parser.parse_args()
 data_path = args.data_path
 step = args.step
+data_name = args.data_name
+info_name = args.info_name
 
 class WooperModel(object):
     def __init__(self, data_path):
@@ -23,11 +42,11 @@ class WooperModel(object):
     def parse(self, raw_data, index:str = 'data.index'):
         self.raw_data = self.data_path/raw_data
         self.info = self.raw_data/index
-        parsed_data = DataParsing(self.raw_data).unlabelled_data(False)
+        parsed_data = DataParsing(self.raw_data).unlabelled_data(unzip = False, fname = 'data.json')
         summarised_data = SummariseDataByTranscript(parsed_data).summarise()
         MergeData(summarised_data, self.info, self.data_path).write_data_for_R()
         # MergeData(parsed_data, self.info, self.data_path).write_data_for_R(df_name = 'reads.pkl')
-    def feature_engineer(self, output_filename, csv_data:str = 'biomart_data.csv'):
+    def feature_engineer(self, output_filename, csv_data:str):
         csv_data = self.data_path/csv_data
         step1_data = self.data_path/'interm.pkl'
         self.df = pd.read_pickle(step1_data)
@@ -51,12 +70,12 @@ if __name__ == "__main__":
     model_instance = WooperModel(data_path)
     if step == 1:
         model_instance.parse(
-            "MCF7_R3r1",
+            data_name,
         )
     if step==2:
         model_instance.feature_engineer(
-            "MCF7_R3r1.pkl",
-            # "dataset3_tx_length.csv"
+            data_name,
+            info_name
         )
         
         
