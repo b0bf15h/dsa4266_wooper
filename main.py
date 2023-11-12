@@ -119,20 +119,20 @@ class WooperModel(object):
         # Below code block is used to generate balanced training data from the input raw data
         # Only used for training final model
         # __________________________________________________
-        # full_data_sampler = SMOTESampler(self.data_path, merged_data)
-        # full_data_sampler.SMOTE()
-        # full_data_sampler.write_output('full_balanced_dataset.pkl')
-        # fd_scaler = Scaler(self.data_path, 'full_balanced_dataset.pkl')
-        # fd_scaler.standardize_train_only()
-        # ohe  = OneHotEncoder(
-        #     self.data_path,
-        #     'full_dataset0.pkl',
-        #     '',
-        #     '',
-        #     ''
-        # )
-        # ohe.OHE()
-        # ohe.write_output('full_balanced_dataset.pkl')
+        full_data_sampler = SMOTESampler(self.data_path, merged_data)
+        full_data_sampler.SMOTE()
+        full_data_sampler.write_output('full_balanced_dataset.pkl')
+        fd_scaler = Scaler(self.data_path, 'full_balanced_dataset.pkl')
+        fd_scaler.standardize_train_only()
+        ohe  = OneHotEncoder(
+            self.data_path,
+            'full_dataset0.pkl',
+            '',
+            '',
+            ''
+        )
+        ohe.OHE()
+        ohe.write_output('full_balanced_dataset.pkl')
         sampler = SMOTESampler(self.data_path, train)
         sampler.SMOTE()
         sampler.write_output()
