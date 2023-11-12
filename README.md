@@ -1,5 +1,5 @@
 # Wooper Model Guide
-We recommend using a new instance at least as powerful as t3.2xlarge(8 CPUs, 32GiB RAM) as processing raw data is quite memory intensive.   
+We recommend **launching a new Ubuntu20 04 Large instance on ResearchGateway** at least as powerful as t3.2xlarge(8 CPUs, 32GiB RAM) as processing raw data is quite memory intensive.   
 
 The timings of the process are obtained on a new t3.2xlarge instance.
 ## Python Environment Set-up via Miniconda (~2 mins)
@@ -42,6 +42,7 @@ Run the following codes to install dependencies.
 ```
 conda activate testenv
 pip install -r dsa4266_wooper/requirements.txt
+pip install
 ```
 
 ## R Environment Set-up (~13 mins)
@@ -54,17 +55,18 @@ chmod +x r_setup.sh
 ./r_setup.sh
 ```
 
-## Generating Training Data (~3 mins using dataset0.json.gz and data.info)
+## Generating Training Data (~2.5 mins using dataset0.json.gz and data.info)
 Change directory into **dsa4266_wooper**.
 ```
 cd dsa4266_wooper
 ```
-You can save some time by running the following command and making all shell scripts executable
+You can save some time by running the following commands and make all shell scripts executable,\
+the shell script pulls all needed data for the repository to run **(~30s)**.
 ```
 chmod +x *.sh
+./pull_data.sh
 ```
-We only support **raw data in json format and labels in csv format**.
-To generate training data, move your zipped raw data(dataset0.json.gz) and labels(data.info) into **dsa4266_wooper/data**. \
+We only support **raw data in json format and labels in csv format**.\
 \
 Afterwards, from dsa4266_wooper run 
 ```
@@ -82,7 +84,7 @@ You can set your own ratio by modifying the following line in data_processing.sh
 ```
 python main.py -d ./data -s 2  # add -r 0.7 for 70-30 split
 ```
-This script will output 4 pickled dataframes, the first 2 can be used for hyperparameter tuning while the next 2 are used to evaluate model performance. \
+This script will output 5 pickled dataframes into **dsa4266_wooper/data**, train and validation are used for hyperparameter tuning, train_final and test_final are used to evaluate model performance, full_balanced_dataset can be used to train the final model since it contains the most information. \
 \
 **E.g.** "train_OHE.pkl" , "validation_OHE.pkl", "train_final_OHE.pkl", "test_final_OHE.pkl".
 
@@ -103,7 +105,7 @@ Queried features include relative_sequence_position for inference data, and 9 ot
 \
 This affects synthetic datasets such as dataset2.json.gz, as well as all 12 of the SGNex datasets, between 50 and 900 transcripts will have queried features be null for the 12 datasets.
 
-## Preparing Raw Data for Inference (~2 mins using dataset1.json.gz, 3 mins using SGNex_A549_directRNA_replicate5_run1)
+## Preparing Raw Data for Inference (~2 mins using dataset3.json.gz)
 To prepare unlabelled raw data for inference, run the following command from the **dsa4266_wooper** directory
 ```
 ./process_inference_data.sh
@@ -117,9 +119,9 @@ python process_inference_data.py -d ./data -s 2 -dn 'dataset1.pkl'
 ```
 For dataset3.json.gz you should **uncomment the specified line described in the shell script**. \
 \
-This script will output 2 pickled dataframes and 1 csv file, one .pkl file is used as input to the model while the other one is used as an index since it contains identifying information for each sequence. \
+This script will output 2 pickled dataframes and 1 csv file into **dsa4266_wooper/data**, one pickle file is used as input to the model while the other one is used as an index since it contains identifying information for each sequence. \
 \
-The csv file contains queried data from Ensembl database. \
+The csv file contains queried data from Ensembl database. This is not present for dataset2 as it is fully synthetic as well as dataset3 as plant sequencing data is not found on Ensembl \
 \
 **E.g.** dataset1.pkl, dataset1_ids_and_positions.pkl and biomart_data.csv
 
@@ -137,17 +139,23 @@ python process_task2.py -d ./data -s 2 -dn 'dataset1.pkl'
 ```
 For dataset3.json.gz you should **uncomment the specified line described in the shell script**. \
 \
-This script will output 3 pickled dataframes and 1 csv file, similar to the outputs of **process_inference_data.sh**, the extra .pkl file contains unnormalised data which may be useful for analysis.\
+This script will output 3 pickled dataframes and 1 csv file into **dsa4266_wooper/data**, similar to the outputs of **process_inference_data.sh**, the extra pickle file contains unnormalised data which may be useful for analysis.\
 \
 **E.g.** A549_R5r1.pkl, unnormalised_A549_R5r1.pkl, A549_R5r1_ids_and_positions.pkl and biomart_data.csv
 
-## Making Predictions (~4 mins using)
-To make predictions on the provided test data, first ensure that the following arguments are correct,\
-\
-run the following command from the **dsa4266_wooper** directory
+## Training Model (~4 mins)
+To train both our models (with and without relative sequence position), run the following command from the **dsa4266_wooper** directory
+```
+./train_model.sh
+```
+This script will output the 2 models into **dsa4266_wooper/models** 
+
+## Making Predictions (~4.5 mins using datasets 1,2,3)
+To make predictions on the provided test data, run the following command from the **dsa4266_wooper** directory
 ```
 ./predictions.sh
 ```
-The shell script takes care of pulling the relevant files from a Google Drive Folder into the machine and makes predictions, you do not need to manually download anything.\
+This script processes raw data for inference, and makes prediction on it using the correct model.\
+Random Forest with relative sequence position for datasets 1 and 3, Random Forest without relative sequence position for dataset2.
 \
 The predictions will be written to **dsa4266_wooper/data/prediction_data** with the name **dataset1_probs.csv**, **dataset2_probs.csv** **dataset3_probs.csv**  .
