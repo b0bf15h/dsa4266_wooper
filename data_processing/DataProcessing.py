@@ -399,7 +399,7 @@ class MergeData(object):
             )
             return
         df['transcript_id'] = df['transcript_id'].astype(str)
-        df.loc[:, 'transcript_id'] = df['transcript_id'].apply(self.truncate_string)
+        #df.loc[:, 'transcript_id'] = df['transcript_id'].apply(self.truncate_string)
         bmart = df[["transcript_id", "transcript_position"]]
         bmart.to_csv(self.data_path / csv_name)
         df.to_pickle(self.data_path / df_name)

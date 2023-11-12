@@ -4,13 +4,13 @@ from pathlib import Path
 import pandas as pd
 
 class Predictor(object):
-    def __init__(self, model_path:Path, data_path:Path, model_name, data_name):
-        self.model_name = model_name
+    def __init__(self, model_path:Path, data_path:Path, data_name:str):
         self.model_path = model_path
         self.data_path = data_path
         self.data_name = data_name
-        self.model = self.get_model()
-        self.data = self.get_data()
+        self.model = None
+        self.data = None
+        self.has_rp = False
         self.probs = None
         self.index = self.get_index()
     def get_index(self):
@@ -21,15 +21,26 @@ class Predictor(object):
         print('Index retrieved successfully')
         return id
     def get_model(self):
-        with open(self.model_path/ self.model_name, 'rb') as f:
+        if self.has_rp: 
+            with open(self.model_path/'rf_final_model.pkl', 'rb') as f:
+                m = pickle.load(f)
+                print('Model with relative position retrieved successfully')
+                self.model = m
+            return
+        with open(self.model_path/'rf_no_rp_final_model.pkl','rb') as f:
             m = pickle.load(f)
-        print('Model retrieved successfully')
-        return m
+            print('Model without relative position retrieved successfully')
+            self.model = m
+        return
     def get_data(self):
         with open(self.data_path/ self.data_name, 'rb') as f:
             d = pickle.load(f)
+        if 'relative_sequence_position' in d.columns:
+            self.has_rp = True
+        self.data = d
+        print(len(self.data))
         print('Data retrieved successfully')
-        return d
+        return
     def drop_unused_cols(self):
         cols_to_drop = ['ensembl_gene_id',
        'start_position', 'end_position', 'strand', 'transcription_start_site',
@@ -38,8 +49,10 @@ class Predictor(object):
         for col in cols_to_drop:
             if col in self.data.columns:
                 self.data.drop(columns=col, inplace=True)
+        print(len(self.data))
     def drop_na_rows(self):
-        self.data = self.data.dropna()
+        self.data.dropna(inplace=True)
+        print(len(self.data))
     def predict_probs (self):
         pairs = self.model.predict_proba(self.data)
         probs = [pair[1] for pair in pairs]
