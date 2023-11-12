@@ -134,11 +134,9 @@ The relative path to the raw data from **dsa4266_wooper/data** and the name of t
 \
 For example, for dataset1, the following lines will do.
 ```
-python process_task2.py -d ./data -s 1 -dn 'dataset1.json.gz'
-python process_task2.py -d ./data -s 2 -dn 'dataset1.pkl'
+python process_task2.py -d ./data -s 1 -dn 'A549_R5r1'
+python process_task2.py -d ./data -s 2 -dn 'A549_R5r1.pkl' 
 ```
-For dataset3.json.gz you should **uncomment the specified line described in the shell script**. \
-\
 This script will output 3 pickled dataframes and 1 csv file into **dsa4266_wooper/data**, similar to the outputs of **process_inference_data.sh**, the extra pickle file contains unnormalised data which may be useful for analysis.\
 \
 **E.g.** A549_R5r1.pkl, unnormalised_A549_R5r1.pkl, A549_R5r1_ids_and_positions.pkl and biomart_data.csv
