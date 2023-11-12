@@ -70,8 +70,13 @@ Afterwards, from dsa4266_wooper run
 ```
 ./data_processing.sh
 ```
-The relative path to the raw data and labels from **dsa4266_wooper/data** should be specified in the **parse()** function in **main.py**.\
+The relative path to the raw data and labels from **dsa4266_wooper/data** should be specified in the first line of the shell script using the flags -dn and -ln respectively\
 \
+For example, this is the correct command in the shell script if you are using **dataset0.json.gz and data.info**.
+```
+python main.py -d ./data -s 1 -dn 'dataset0.json.gz' -ln 'data.info'
+```
+
 We use 0.8 for both train-test split and train-validation split. \
 You can set your own ratio by modifying the following line in data_processing.sh
 ```
@@ -89,6 +94,7 @@ parsed_data = DataParsing(self.raw_data).unlabelled_data()
 parsed_data = DataParsing(self.raw_data).unlabelled_data(fname = 'data.json', unzip = False)
 
 ```
+The **fname** argument is only valid if **unzip = False** and should refer to the .json file containing read-level data.
 
 ### Some features may be null
 As we query for data from Ensembl using Biomart, some versioning issues with transcript IDs and the database will result in failed queries. \
@@ -102,9 +108,14 @@ To prepare unlabelled raw data for inference, run the following command from the
 ```
 ./process_inference_data.sh
 ```
-The relative path to the raw data from **dsa4266_wooper/data** and the name of the output file should be specified in the **parse()** and **feature_engineer()** functions in **process_inference_data.py** respectively. \
+The relative path to the raw data from **dsa4266_wooper/data** and the name of the output file should be specified using the -dn flags in the shell script when calling the python script. \
 \
-For dataset3.json.gz you should **uncomment the specified .csv file in feature_engineer() inside process_inference_data.py**. \
+For example, for dataset1, the following lines will do.
+```
+python process_inference_data.py -d ./data -s 1 -dn 'dataset1.json.gz'
+python process_inference_data.py -d ./data -s 2 -dn 'dataset1.pkl'
+```
+For dataset3.json.gz you should **uncomment the specified line described in the shell script**. \
 \
 This script will output 2 pickled dataframes and 1 csv file, one .pkl file is used as input to the model while the other one is used as an index since it contains identifying information for each sequence. \
 \
@@ -117,18 +128,21 @@ To prepare unlabelled raw data for further analysis, run the following command f
 ```
 ./process_task2.sh
 ```
-The relative path to the raw data from **dsa4266_wooper/data** and the name of the output file should be specified in the **parse()** and **feature_engineer()** functions in **process_task2.py** respectively.\
+The relative path to the raw data from **dsa4266_wooper/data** and the name of the output file using the -dn flags in the shell script when calling the python script. \
+\
+For example, for dataset1, the following lines will do.
+```
+python process_task2.py -d ./data -s 1 -dn 'dataset1.json.gz'
+python process_task2.py -d ./data -s 2 -dn 'dataset1.pkl'
+```
+For dataset3.json.gz you should **uncomment the specified line described in the shell script**. \
 \
 This script will output 3 pickled dataframes and 1 csv file, similar to the outputs of **process_inference_data.sh**, the extra .pkl file contains unnormalised data which may be useful for analysis.\
 \
 **E.g.** A549_R5r1.pkl, unnormalised_A549_R5r1.pkl, A549_R5r1_ids_and_positions.pkl and biomart_data.csv
 
-## Making Predictions (~4 mins using SGNex_A549_directRNA_replicate5_run1 raw data)
+## Making Predictions (~4 mins using)
 To make predictions on the provided test data, first ensure that the following arguments are correct,\
-\
-In **process_inference_data.py**, under **parse()** , **unlabelled_data()** is called with **fname = 'data.json', unzip = False**.\
-In **process_inference_data.py** at the End-of-File, **parse()** is called with **raw_data = 'prediction_data'** and\
-**feature_engineer()** is called with **output_filename = 'prediction_data.pkl'**\
 \
 run the following command from the **dsa4266_wooper** directory
 ```
@@ -136,4 +150,4 @@ run the following command from the **dsa4266_wooper** directory
 ```
 The shell script takes care of pulling the relevant files from a Google Drive Folder into the machine and makes predictions, you do not need to manually download anything.\
 \
-The predictions will be written to **dsa4266_wooper/data** with the name **prediction_data_probs.csv**.
+The predictions will be written to **dsa4266_wooper/data/prediction_data** with the name **dataset1_probs.csv**, **dataset2_probs.csv** **dataset3_probs.csv**  .
