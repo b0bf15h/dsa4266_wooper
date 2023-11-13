@@ -10,6 +10,8 @@ conda create -n testenv python==3.9.0
 ```
 , git clone the repo and skip to the **Python Installations** section.    \
 \
+The following steps apply if you launched a fresh instance and do not have conda.  \
+\
 Within your home directory, run the following command to clone into this repository.    
 
 ```
@@ -42,7 +44,8 @@ Run the following codes to install dependencies.
 ```
 conda activate testenv
 pip install -r dsa4266_wooper/requirements.txt
-pip install
+# the below line is optional but allows you to try ensembling methods
+pip install git+https://github.com/scikit-learn-contrib/DESlib
 ```
 
 ## R Environment Set-up (~13 mins)
@@ -72,7 +75,7 @@ Afterwards, from dsa4266_wooper run
 ```
 ./data_processing.sh
 ```
-The relative path to the raw data and labels from **dsa4266_wooper/data** should be specified in the first line of the shell script using the flags -dn and -ln respectively\
+The relative path to the raw data and labels from **dsa4266_wooper/data** should be specified using the flags -dn and -ln respectively
 \
 For example, this is the correct command in the shell script if you are using **dataset0.json.gz and data.info**.
 ```
@@ -86,7 +89,7 @@ python main.py -d ./data -s 2  # add -r 0.7 for 70-30 split
 ```
 This script will output 5 pickled dataframes into **dsa4266_wooper/data**, train and validation are used for hyperparameter tuning, train_final and test_final are used to evaluate model performance, full_balanced_dataset can be used to train the final model since it contains the most information. \
 \
-**E.g.** "train_OHE.pkl" , "validation_OHE.pkl", "train_final_OHE.pkl", "test_final_OHE.pkl".
+**E.g.** "train_OHE.pkl" , "validation_OHE.pkl", "train_final_OHE.pkl", "test_final_OHE.pkl", "full_balanced_dataset.pkl"
 
 ### If your raw data is not zipped, then modify the unlabelled_data() function in the respective python scripts run by the shell script
 **E.g.** Replacing the first line with the second line
@@ -130,9 +133,9 @@ To prepare unlabelled raw data for further analysis, run the following command f
 ```
 ./process_task2.sh
 ```
-The relative path to the raw data from **dsa4266_wooper/data** and the name of the output file using the -dn flags in the shell script when calling the python script. \
+The relative path to the raw data from **dsa4266_wooper/data** and the name of the output file should be specified using the -dn flags in the shell script when calling the python script. \
 \
-For example, for dataset1, the following lines will do.
+For example, for the provided data A549_Replicate5_Run1, the following lines will do.
 ```
 python process_task2.py -d ./data -s 1 -dn 'A549_R5r1'
 python process_task2.py -d ./data -s 2 -dn 'A549_R5r1.pkl' 
