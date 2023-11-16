@@ -11,4 +11,4 @@ gdown "https://drive.google.com/uc?id=$f_dataset" -O "$full_model_file"
 mv model.pkl ./data/full_balanced_dataset.pkl
 
 python main.py -d ./data -s 3 -m ./models -pn 'rf_best_trials_final_tuning.pkl' -dn 'full_balanced_dataset.pkl' -mn 'rf_final_model.pkl'
-python main.py -d ./data -s 3 -m ./models -pn 'rf_best_trials_no_rel_pos.pkl' -dn 'full_balanced_dataset.pkl' -mn 'rf_no_rp_final_model.pkl' -rp False
+python main.py -d ./data -s 3 -m ./models -pn 'rf_best_trials_no_rel_pos.pkl' -dn 'full_balanced_dataset.pkl' -mn 'rf_no_rp_final_model.pkl' -rp

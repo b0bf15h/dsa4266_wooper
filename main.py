@@ -85,10 +85,7 @@ parser.add_argument(
 parser.add_argument(
     "--relative_position",
     "-rp",
-    type=bool,
-    action="store",
-    required=False,
-    default=True,
+    action="store_false",
     help="whether the dataset to predict on has relative position"
 )
 args = parser.parse_args()
